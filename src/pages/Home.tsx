@@ -14,7 +14,7 @@ import { ItemSearch } from "../components/menu/ItemSearch";
 import { ShopCategory } from "../components/shop/ShopCategory";
 // import ThemeDropdown from "../ThemeDropdown";
 
-export const StorePage = () => {
+export const Home = ({ user }: any) => {
   const [search, setSearch] = useState("");
   // const [theme, setTheme] = useState(config.theme);
   const [searching, setSearching] = useState(false);
@@ -39,6 +39,8 @@ export const StorePage = () => {
     .filter((cat) => cat.items.length > 0);
 
   const headerStyle = searching && search.length > 0 ? "hidden" : "";
+
+  console.log(user);
 
   const content = (
     <div className={`menu-theme ${themeClass} min-h-screen relative`}>

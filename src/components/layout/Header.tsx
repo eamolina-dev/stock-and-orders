@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom";
+
 type Props = {
   name: string;
   description: string;
@@ -6,6 +8,7 @@ type Props = {
 };
 
 export const Header = ({ name, description, image, style }: Props) => {
+  const navigate = useNavigate();
   const hasImage = !!image;
 
   return (
@@ -21,10 +24,24 @@ export const Header = ({ name, description, image, style }: Props) => {
             alt={name}
             className="absolute inset-0 w-full h-full object-cover"
           />
-          {/* <div className="absolute inset-0 bg-black/40" /> */}
           <div className="absolute inset-0 bg-black/70" />
         </>
       )}
+
+      {/* Botón flotante */}
+      <div className="absolute top-4 right-4 z-20">
+        <button
+          onClick={() => navigate("/dashboard/products")}
+          className="
+            px-3 py-2 text-sm rounded-md
+            bg-zinc-900/90 text-white backdrop-blur
+            hover:bg-zinc-800
+            transition
+          "
+        >
+          Dashboard
+        </button>
+      </div>
 
       <div
         className={`relative z-10 ${
@@ -32,21 +49,12 @@ export const Header = ({ name, description, image, style }: Props) => {
         }`}
       >
         <h1
-          className={`font-title text-3xl md:text-5xl font-semibold tracking-wide ${
-            hasImage
-              ? "text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
-              : "title"
-          }`}
+          className={`font-title text-3xl md:text-5xl font-semibold tracking-wide`}
         >
           {name}
         </h1>
-        <p
-          className={`mt-2 ${
-            hasImage
-              ? "text-white/90 drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)]"
-              : "muted"
-          }`}
-        >
+
+        <p className={`mt-2 ${hasImage ? "text-white/90" : "muted"}`}>
           {description}
         </p>
       </div>
