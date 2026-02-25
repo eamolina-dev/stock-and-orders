@@ -7,10 +7,8 @@ import {
 } from "../../lib/categories";
 import type { Category } from "../../types/types";
 
-type UUID = string;
-
 type Props = {
-  userId: UUID;
+  userId: string;
 };
 
 export default function CategoriesTable({ userId }: Props) {
@@ -23,12 +21,12 @@ export default function CategoriesTable({ userId }: Props) {
   }, []);
 
   const load = async () => {
-    const res = await getCategories();
-    setItems(res.data ?? []);
+    const data = await getCategories();
+    setItems(data);
     setEdited({});
   };
 
-  const handleChange = (id: UUID, value: string) => {
+  const handleChange = (id: string, value: string) => {
     setEdited((prev) => ({
       ...prev,
       [id]: { ...prev[id], name: value },
@@ -40,8 +38,7 @@ export default function CategoriesTable({ userId }: Props) {
   };
 
   const hasChanges = Object.keys(edited).length > 0;
-
-  const hasErrors = items.some((item) => !item.name?.trim());
+  const hasErrors = items.some((item) => !(item.name ?? "").trim());
 
   const handleSave = async () => {
     if (hasErrors) return;
@@ -50,14 +47,13 @@ export default function CategoriesTable({ userId }: Props) {
       Object.entries(edited).map(([id, data]) => {
         if (id.startsWith("temp_")) {
           return createCategory({
-            name: data.name ?? "",
+            name: data.name ?? null,
             user_id: userId,
           });
         }
 
-        return updateCategory({
-          id,
-          name: data.name ?? "",
+        return updateCategory(id, {
+          name: data.name ?? null,
         });
       })
     );
@@ -68,16 +64,16 @@ export default function CategoriesTable({ userId }: Props) {
   const handleAddRow = () => {
     const tempId = `temp_${Date.now()}`;
 
-    const newItem: Category = {
+    const newItem = {
       id: tempId,
       name: "",
-    };
+    } as Category;
 
     setItems((prev) => [newItem, ...prev]);
     setEdited((prev) => ({ ...prev, [tempId]: newItem }));
   };
 
-  const handleDelete = async (id: UUID) => {
+  const handleDelete = async (id: string) => {
     if (id.startsWith("temp_")) {
       setItems((prev) => prev.filter((item) => item.id !== id));
       setEdited((prev) => {
@@ -88,7 +84,7 @@ export default function CategoriesTable({ userId }: Props) {
       return;
     }
 
-    await deleteCategory({ id });
+    await deleteCategory(id);
     setItems((prev) => prev.filter((item) => item.id !== id));
   };
 
@@ -96,7 +92,7 @@ export default function CategoriesTable({ userId }: Props) {
     if (!filter.trim()) return items;
 
     return items.filter((item) =>
-      item.name.toLowerCase().includes(filter.toLowerCase())
+      (item.name ?? "").toLowerCase().includes(filter.toLowerCase())
     );
   }, [items, filter]);
 
@@ -160,7 +156,7 @@ export default function CategoriesTable({ userId }: Props) {
                   >
                     <td className="px-3 py-2">
                       <input
-                        value={item.name}
+                        value={item.name || ""}
                         onChange={(e) => handleChange(item.id, e.target.value)}
                         placeholder="Nombre de categoría"
                         className="w-full bg-transparent outline-none px-2 py-1 rounded"

@@ -1,44 +1,41 @@
-import { supabase } from "../lib/supabase"
+import { supabase } from "./supabase"
+import type { Category, CategoryInsert, CategoryUpdate } from "../types/types"
 
-type UUID = string
-
-type CreateType = {
-  name: string
-  user_id: UUID
-}
-
-type UpdateType = {
-  id: UUID
-  name: string
-}
-
-type DeleteType = {
-  id: UUID
-}
-
-export async function getCategories() {
-  return await supabase
+export async function getCategories(): Promise<Category[]> {
+  const { data, error } = await supabase
     .from("categories")
     .select("*")
     .order("name")
+
+  if (error) throw error
+  return data ?? []
 }
 
-export async function createCategory({ name, user_id }: CreateType) {
-  return await supabase
+export async function createCategory(input: CategoryInsert): Promise<void> {
+  const { error } = await supabase
     .from("categories")
-    .insert({ name, user_id })
+    .insert(input)
+
+  if (error) throw error
 }
 
-export async function updateCategory({ id, name }: UpdateType) {
-  return await supabase
+export async function updateCategory(
+  id: string,
+  changes: CategoryUpdate
+): Promise<void> {
+  const { error } = await supabase
     .from("categories")
-    .update({ name })
+    .update(changes)
     .eq("id", id)
+
+  if (error) throw error
 }
 
-export async function deleteCategory({ id }: DeleteType) {
-  return await supabase
+export async function deleteCategory(id: string): Promise<void> {
+  const { error } = await supabase
     .from("categories")
     .delete()
     .eq("id", id)
+
+  if (error) throw error
 }

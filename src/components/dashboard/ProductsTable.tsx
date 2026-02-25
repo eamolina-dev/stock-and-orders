@@ -8,41 +8,43 @@ import {
 import { getCategories } from "../../lib/categories";
 import type { Product, Category } from "../../types/types";
 
-type UUID = string;
-
 type Props = {
-  userId: UUID;
+  userId: string;
+};
+
+type ProductUI = Omit<Product, "price"> & {
+  price: string;
 };
 
 export default function ProductsTable({ userId }: Props) {
-  const [items, setItems] = useState<Product[]>([]);
-  const [edited, setEdited] = useState<Record<string, Partial<Product>>>({});
+  const [items, setItems] = useState<ProductUI[]>([]);
+  const [edited, setEdited] = useState<Record<string, Partial<ProductUI>>>({});
   const [filter, setFilter] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     load();
-    getCategories().then((res) => setCategories(res.data ?? []));
+    getCategories().then(setCategories);
   }, []);
 
   const load = async () => {
-    const res = await getProducts();
+    const data = await getProducts();
 
-    const normalized =
-      res.data?.map((item) => ({
-        ...item,
-        price:
-          item.price === null || item.price === undefined
-            ? ""
-            : String(item.price),
-      })) ?? [];
+    const normalized: ProductUI[] = data.map((item) => ({
+      ...item,
+      price: item.price === null ? "" : String(item.price),
+    }));
 
     setItems(normalized);
     setEdited({});
   };
 
-  const handleChange = (id: UUID, field: keyof Product, value: any) => {
-    const safeValue = field === "price" ? String(value) : value;
+  const handleChange = (
+    id: string,
+    field: keyof ProductUI,
+    value: string | null
+  ) => {
+    const safeValue = value ?? "";
 
     setEdited((prev) => ({
       ...prev,
@@ -56,19 +58,18 @@ export default function ProductsTable({ userId }: Props) {
     );
   };
 
-  const parseNumber = (value: string) => {
-    if (!value.trim()) return undefined;
+  const parseNumber = (value: string): number | null => {
+    if (!value.trim()) return null;
     const n = Number(value.replace(",", "."));
-    return isNaN(n) ? undefined : n;
+    return isNaN(n) ? null : n;
   };
 
   const hasChanges = Object.keys(edited).length > 0;
 
   const hasErrors = items.some((item) => {
-    const invalidPrice =
-      item.price !== "" && parseNumber(item.price) === undefined;
+    const invalidPrice = item.price !== "" && parseNumber(item.price) === null;
 
-    return !item.name?.trim() || invalidPrice;
+    return !(item.name ?? "").trim() || invalidPrice;
   });
 
   const handleSave = async () => {
@@ -78,19 +79,17 @@ export default function ProductsTable({ userId }: Props) {
       Object.entries(edited).map(([id, data]) => {
         if (id.startsWith("temp_")) {
           return createProduct({
-            name: data.name ?? "",
-            price: parseNumber(data.price ?? "") ?? 0,
+            name: data.name ?? null,
+            price: parseNumber((data.price as string) ?? "") ?? 0,
             image_url: data.image_url ?? null,
             category_id: data.category_id ?? null,
             user_id: userId,
           });
         }
 
-        return updateProduct({
-          id,
-          ...(data.name !== undefined && { name: data.name }),
+        return updateProduct(id, {
           ...(data.price !== undefined && {
-            price: parseNumber(data.price) ?? 0,
+            price: parseNumber(data.price),
           }),
           ...(data.image_url !== undefined && {
             image_url: data.image_url,
@@ -108,19 +107,19 @@ export default function ProductsTable({ userId }: Props) {
   const handleAddRow = () => {
     const tempId = `temp_${Date.now()}`;
 
-    const newItem: Product = {
+    const newItem = {
       id: tempId,
       name: "",
       price: "",
       image_url: null,
       category_id: null,
-    };
+    } as ProductUI;
 
     setItems((prev) => [newItem, ...prev]);
     setEdited((prev) => ({ ...prev, [tempId]: newItem }));
   };
 
-  const handleDelete = async (id: UUID) => {
+  const handleDelete = async (id: string) => {
     if (id.startsWith("temp_")) {
       setItems((prev) => prev.filter((item) => item.id !== id));
       setEdited((prev) => {
@@ -131,7 +130,7 @@ export default function ProductsTable({ userId }: Props) {
       return;
     }
 
-    await deleteProduct({ id });
+    await deleteProduct(id);
     setItems((prev) => prev.filter((item) => item.id !== id));
   };
 
@@ -139,7 +138,7 @@ export default function ProductsTable({ userId }: Props) {
     if (!filter.trim()) return items;
 
     return items.filter((item) =>
-      item.name.toLowerCase().includes(filter.toLowerCase())
+      (item.name ?? "").toLowerCase().includes(filter.toLowerCase())
     );
   }, [items, filter]);
 
@@ -194,7 +193,7 @@ export default function ProductsTable({ userId }: Props) {
             <tbody>
               {filteredItems.map((item, i) => {
                 const invalidPrice =
-                  item.price !== "" && parseNumber(item.price) === undefined;
+                  item.price !== "" && parseNumber(item.price) === null;
 
                 const isEdited = edited[item.id];
 
@@ -209,7 +208,7 @@ export default function ProductsTable({ userId }: Props) {
                   >
                     <td className="px-3 py-2">
                       <input
-                        value={item.name}
+                        value={item.name || ""}
                         onChange={(e) =>
                           handleChange(item.id, "name", e.target.value)
                         }
@@ -219,7 +218,7 @@ export default function ProductsTable({ userId }: Props) {
 
                     <td className="px-3 py-2">
                       <input
-                        value={item.price}
+                        value={item.price || ""}
                         onChange={(e) =>
                           handleChange(item.id, "price", e.target.value)
                         }

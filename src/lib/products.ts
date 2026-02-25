@@ -1,49 +1,41 @@
 import { supabase } from "../lib/supabase"
+import type { Product, ProductInsert, ProductUpdate } from "../types/types"
 
-type UUID = string
-
-type CreateProduct = {
-  name: string
-  price: number
-  image_url?: string | null
-  category_id?: UUID | null
-  user_id: UUID
-}
-
-type UpdateProduct = {
-  id: UUID
-  name?: string
-  price?: number
-  image?: string | null
-}
-
-type DeleteProduct = {
-  id: UUID
-}
-
-export async function getProducts() {
-  return await supabase
+export async function getProducts(): Promise<Product[]> {
+  const { data, error } = await supabase
     .from("products")
     .select("*")
     .order("name")
+
+  if (error) throw error
+  return data ?? []
 }
 
-export async function createProduct(data: CreateProduct) {
-  return await supabase
+export async function createProduct(input: ProductInsert): Promise<void> {
+  const { error } = await supabase
     .from("products")
-    .insert(data)
+    .insert(input)
+
+  if (error) throw error
 }
 
-export async function updateProduct({ id, ...fields }: UpdateProduct) {
-  return await supabase
+export async function updateProduct(
+  id: string,
+  changes: ProductUpdate
+): Promise<void> {
+  const { error } = await supabase
     .from("products")
-    .update(fields)
+    .update(changes)
     .eq("id", id)
+
+  if (error) throw error
 }
 
-export async function deleteProduct({ id }: DeleteProduct) {
-  return await supabase
+export async function deleteProduct(id: string): Promise<void> {
+  const { error } = await supabase
     .from("products")
     .delete()
     .eq("id", id)
+
+  if (error) throw error
 }
