@@ -6,24 +6,45 @@ import {
   deleteCategory,
 } from "../../lib/categories";
 import type { Category } from "../../types/types";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type Props = {
   userId: string;
 };
+
+const PAGE_SIZE = 10;
 
 export default function CategoriesTable({ userId }: Props) {
   const [items, setItems] = useState<Category[]>([]);
   const [edited, setEdited] = useState<Record<string, Partial<Category>>>({});
   const [filter, setFilter] = useState("");
 
-  useEffect(() => {
-    load();
-  }, []);
+  const [page, setPage] = useState(0);
+  const [total, setTotal] = useState(0);
 
-  const load = async () => {
-    const data = await getCategories();
-    setItems(data);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const maxPage = Math.max(0, Math.ceil(total / PAGE_SIZE) - 1);
+
+  useEffect(() => {
+    load(page);
+  }, [page]);
+
+  const load = async (page = 0) => {
+    const from = page * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+
+    const { rows, count } = await getCategories({ from, to });
+
+    setItems(rows);
+    setTotal(count);
     setEdited({});
+  };
+
+  const notify = (text: string) => {
+    setMessage(text);
+    setTimeout(() => setMessage(null), 2000);
   };
 
   const handleChange = (id: string, value: string) => {
@@ -43,22 +64,29 @@ export default function CategoriesTable({ userId }: Props) {
   const handleSave = async () => {
     if (hasErrors) return;
 
-    await Promise.all(
-      Object.entries(edited).map(([id, data]) => {
-        if (id.startsWith("temp_")) {
-          return createCategory({
+    setSaving(true);
+
+    try {
+      await Promise.all(
+        Object.entries(edited).map(([id, data]) => {
+          if (id.startsWith("temp_")) {
+            return createCategory({
+              name: data.name ?? null,
+              user_id: userId,
+            });
+          }
+
+          return updateCategory(id, {
             name: data.name ?? null,
-            user_id: userId,
           });
-        }
+        })
+      );
 
-        return updateCategory(id, {
-          name: data.name ?? null,
-        });
-      })
-    );
-
-    load();
+      notify("Cambios guardados");
+      load(page);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleAddRow = () => {
@@ -74,18 +102,26 @@ export default function CategoriesTable({ userId }: Props) {
   };
 
   const handleDelete = async (id: string) => {
-    if (id.startsWith("temp_")) {
-      setItems((prev) => prev.filter((item) => item.id !== id));
-      setEdited((prev) => {
-        const copy = { ...prev };
-        delete copy[id];
-        return copy;
-      });
-      return;
-    }
+    if (!window.confirm("¿Eliminar categoría?")) return;
 
-    await deleteCategory(id);
-    setItems((prev) => prev.filter((item) => item.id !== id));
+    try {
+      if (id.startsWith("temp_")) {
+        setItems((prev) => prev.filter((item) => item.id !== id));
+        setEdited((prev) => {
+          const copy = { ...prev };
+          delete copy[id];
+          return copy;
+        });
+        return;
+      }
+
+      await deleteCategory(id);
+
+      notify("Categoría eliminada");
+      load(page);
+    } catch {
+      notify("No se pudo eliminar");
+    }
   };
 
   const filteredItems = useMemo(() => {
@@ -97,9 +133,9 @@ export default function CategoriesTable({ userId }: Props) {
   }, [items, filter]);
 
   return (
-    <div className="p-4 flex flex-col gap-4">
+    <div className="p-4 flex flex-col gap-4 min-w-[800px]">
       {/* Toolbar */}
-      <div className="flex justify-between gap-2">
+      <div className="flex items-center justify-between gap-2">
         <input
           placeholder="Filtrar..."
           value={filter}
@@ -108,7 +144,7 @@ export default function CategoriesTable({ userId }: Props) {
         />
 
         <button
-          disabled={!hasChanges || hasErrors}
+          disabled={saving || !hasChanges || hasErrors}
           onClick={handleSave}
           className={`
             px-4 py-2 text-sm rounded-md transition
@@ -130,14 +166,22 @@ export default function CategoriesTable({ userId }: Props) {
         + Agregar categoría
       </button>
 
-      {/* Tabla */}
-      <div className="border border-zinc-200 rounded-lg overflow-hidden bg-white">
+      {message && <div className="text-sm text-emerald-600">{message}</div>}
+
+      {hasErrors && (
+        <div className="text-sm text-red-500">
+          Todas las categorías deben tener nombre
+        </div>
+      )}
+
+      {/* Layout scroll sano */}
+      <div className="border border-zinc-200 rounded-lg bg-white">
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead className="bg-zinc-50 text-zinc-500">
               <tr>
                 <th className="text-left px-3 py-2">Nombre</th>
-                <th className="text-left px-3 py-2 w-20"></th>
+                <th className="px-3 py-2 w-20"></th>
               </tr>
             </thead>
 
@@ -151,6 +195,7 @@ export default function CategoriesTable({ userId }: Props) {
                     className={`
                       ${i % 2 === 0 ? "bg-white" : "bg-zinc-50"}
                       hover:bg-emerald-50
+                      transition-colors
                       ${isEdited ? "ring-1 ring-amber-400" : ""}
                     `}
                   >
@@ -158,7 +203,6 @@ export default function CategoriesTable({ userId }: Props) {
                       <input
                         value={item.name || ""}
                         onChange={(e) => handleChange(item.id, e.target.value)}
-                        placeholder="Nombre de categoría"
                         className="w-full bg-transparent outline-none px-2 py-1 rounded"
                       />
                     </td>
@@ -179,11 +223,30 @@ export default function CategoriesTable({ userId }: Props) {
         </div>
       </div>
 
-      {hasErrors && (
-        <div className="text-sm text-red-500">
-          Todas las categorías deben tener nombre
-        </div>
-      )}
+      {/* Paginación minimal */}
+      <div className="flex justify-center gap-6 text-sm items-center">
+        <ChevronLeft
+          size={18}
+          className={`cursor-pointer ${page === 0 ? "opacity-30" : ""}`}
+          onClick={() => {
+            if (page === 0) return;
+            setPage((p) => Math.max(0, p - 1));
+          }}
+        />
+
+        <span className="text-zinc-500">
+          Página {page + 1} / {maxPage + 1}
+        </span>
+
+        <ChevronRight
+          size={18}
+          className={`cursor-pointer ${page >= maxPage ? "opacity-30" : ""}`}
+          onClick={() => {
+            if (page >= maxPage) return;
+            setPage((p) => Math.min(p + 1, maxPage));
+          }}
+        />
+      </div>
     </div>
   );
 }

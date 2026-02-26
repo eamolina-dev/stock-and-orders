@@ -1,14 +1,29 @@
-import { supabase } from "./supabase"
-import type { Category, CategoryInsert, CategoryUpdate } from "../types/types"
+import { supabase } from "./supabase";
+import type { Category, CategoryInsert, CategoryUpdate } from "../types/types";
 
-export async function getCategories(): Promise<Category[]> {
-  const { data, error } = await supabase
+type Props = {
+  from: number;
+  to: number;
+};
+
+type GetCategoryResult = {
+  rows: Category[]
+  count: number
+}
+
+export async function getCategories({ from, to }: Props): Promise<GetCategoryResult> {
+  const { data, error, count } = await supabase
     .from("categories")
-    .select("*")
-    .order("name")
+    .select("*", { count: "exact" })
+    .range(from, to)
+    .order("name");
 
-  if (error) throw error
-  return data ?? []
+  if (error) throw error;
+
+  return {
+    rows: data ?? [],
+    count: count ?? 0,
+  };
 }
 
 export async function createCategory(input: CategoryInsert): Promise<void> {

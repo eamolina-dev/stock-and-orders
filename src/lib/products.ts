@@ -1,14 +1,29 @@
 import { supabase } from "../lib/supabase"
 import type { Product, ProductInsert, ProductUpdate } from "../types/types"
 
-export async function getProducts(): Promise<Product[]> {
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .order("name")
+type Props = {
+  from: number,
+  to: number
+}
 
-  if (error) throw error
-  return data ?? []
+type GetProductsResult = {
+  rows: Product[]
+  count: number
+}
+
+export async function getProducts({ from, to }: Props): Promise<GetProductsResult> {
+  const { data, error, count } = await supabase
+    .from("products")
+    .select("*", { count: "exact" })
+    .range(from, to)
+    .order("name");
+
+  if (error) throw error;
+
+  return {
+    rows: data ?? [],
+    count: count ?? 0,
+  };
 }
 
 export async function createProduct(input: ProductInsert): Promise<void> {

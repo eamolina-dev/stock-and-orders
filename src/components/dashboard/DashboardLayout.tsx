@@ -7,7 +7,7 @@ type Props = {
 export default function DashboardLayout({ children }: Props) {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col gap-6">
+      <div className="w-full max-w-6xl mx-auto px-4 py-8 flex flex-col gap-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold">Dashboard</h1>
@@ -20,15 +20,7 @@ export default function DashboardLayout({ children }: Props) {
         </div>
 
         {/* Content Panel */}
-        <div
-          className="
-          bg-white 
-          text-zinc-900 
-          rounded-xl 
-          border border-zinc-200 
-          shadow-sm
-        "
-        >
+        <div className="w-full bg-white text-zinc-900 rounded-xl border border-zinc-200 shadow-sm overflow-x-auto">
           {children}
         </div>
       </div>
