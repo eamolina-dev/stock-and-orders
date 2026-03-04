@@ -12,3 +12,15 @@ export async function getClientByOwner(userId: string): Promise<Client | null> {
 
   return data;
 }
+
+export async function getClientByName(name: string): Promise<Client | null> {
+  const { data, error } = await supabase
+    .from("clients")
+    .select("*")
+    .eq("name", name)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return data;
+}

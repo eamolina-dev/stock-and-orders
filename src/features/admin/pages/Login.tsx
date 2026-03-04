@@ -3,7 +3,6 @@ import type { FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { themes } from "../../../theme/themes";
-import { config } from "../../../config";
 import { getSession, signInWithPassword } from "../../../core/auth/session";
 
 type LocationState = {
@@ -20,7 +19,7 @@ export default function AdminLogin() {
   const location = useLocation();
 
   const from = (location.state as LocationState | null)?.from;
-  const themeClass = themes[config.theme];
+  const themeClass = themes.dark;
 
   useEffect(() => {
     const checkSession = async () => {

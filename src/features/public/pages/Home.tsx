@@ -1,10 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Shield } from "lucide-react";
-import { WhatsAppButton } from "../components/WhatsappButton";
-import { LocationButton } from "../components/LocationButton";
 import { Header } from "../../../core/layout/Header";
-import { config } from "../../../config";
 import { Footer } from "../../../core/layout/Footer";
 import { themes } from "../../../theme/themes";
 import { CategoryFilter } from "../components/CategoryFilter";
@@ -17,7 +14,7 @@ import { getPublicMenu } from "../../../modules/items/queries";
 import type { MenuCategory } from "../../../modules/items/types";
 import { isConfiguredAdmin } from "../../../core/auth/admin";
 import { getSession, subscribeToAuthChanges } from "../../../core/auth/session";
-import { resolvePublicClientId } from "../../../core/client/resolution";
+import { resolvePublicClient } from "../../../core/client/resolution";
 
 const normalizeText = (text: string) =>
   text
@@ -31,6 +28,7 @@ export const Home = () => {
   const [menu, setMenu] = useState<MenuCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdminSession, setIsAdminSession] = useState(false);
+  const [clientName, setClientName] = useState("toma.");
 
   useEffect(() => {
     let mounted = true;
@@ -38,15 +36,16 @@ export const Home = () => {
     const loadPublicMenu = async () => {
       setLoading(true);
       try {
-        const clientId = await resolvePublicClientId();
-        if (!clientId) {
+        const client = await resolvePublicClient();
+        if (!client?.id) {
           if (!mounted) return;
           setMenu([]);
           return;
         }
 
-        const parsedMenu = await getPublicMenu(clientId);
+        const parsedMenu = await getPublicMenu(client.id);
         if (!mounted) return;
+        if (client.name) setClientName(client.name);
         setMenu(parsedMenu);
       } catch {
         if (!mounted) return;
@@ -86,22 +85,20 @@ export const Home = () => {
     [menu, search]
   );
 
-  const themeClass = themes[config.theme];
+  const themeClass = themes.dark;
   const headerStyle = searching && search.length > 0 ? "hidden" : "";
 
   return (
     <CartProvider>
       <div className={`menu-theme ${themeClass} min-h-screen relative`}>
         <Header
-          name={config.clientName}
-          description={config.description}
+          name={clientName}
+          description="Casa de bebidas"
           image="/pexels-maksgelatin-5748508.jpg"
           style={headerStyle}
         />
 
-        {config.features.categoryFilter && (
-          <CategoryFilter categories={menu.map((c) => ({ id: c.id, title: c.title }))} />
-        )}
+        <CategoryFilter categories={menu.map((c) => ({ id: c.id, title: c.title }))} />
 
         <main className="max-w-2xl mx-auto px-4 pt-8 pb-24">
           {isAdminSession && (
@@ -113,20 +110,18 @@ export const Home = () => {
             </div>
           )}
 
-          {config.features.search && (
-            <ItemSearch
-              search={search}
-              placeholder="Buscar bebida ..."
-              setSearch={setSearch}
-              setSearching={setSearching}
-            />
-          )}
+          <ItemSearch
+            search={search}
+            placeholder="Buscar bebida ..."
+            setSearch={setSearch}
+            setSearching={setSearching}
+          />
 
           {loading && <div className="text-center py-10 text-sm text-slate-400">Cargando productos...</div>}
 
           {!loading &&
             filteredMenu.map((category) => (
-              <ShopCategory key={category.id} category={category} showAddButton={config.features.cart} />
+              <ShopCategory key={category.id} category={category} showAddButton />
             ))}
 
           {!loading && filteredMenu.length === 0 && search.length > 0 && (
@@ -137,12 +132,10 @@ export const Home = () => {
         <Footer />
 
         <div className="fixed bottom-6 right-6 flex flex-col gap-3">
-          {config.features.whatsappButton && <WhatsAppButton phone={config.phoneNumber} />}
-          {config.features.locationButton && <LocationButton address={config.address} />}
-          {config.features.cart && <CartButton />}
+          <CartButton />
         </div>
 
-        {config.features.cart && <CartPanel />}
+        <CartPanel />
       </div>
     </CartProvider>
   );

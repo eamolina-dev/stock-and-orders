@@ -1,6 +1,6 @@
-import { config } from "../../config";
 import { getSession } from "../auth/session";
-import { getClientByOwner } from "../../modules/clients/queries";
+import { getClientByName, getClientByOwner } from "../../modules/clients/queries";
+import type { Client } from "../../modules/clients/types";
 
 export async function resolveClientIdFromSession(): Promise<string | null> {
   const session = await getSession();
@@ -13,8 +13,10 @@ export async function resolveClientIdFromSession(): Promise<string | null> {
 }
 
 export async function resolvePublicClientId(): Promise<string | null> {
-  const clientIdFromSession = await resolveClientIdFromSession();
-  if (clientIdFromSession) return clientIdFromSession;
+  const client = await getClientByName("toma.");
+  return client?.id ?? null;
+}
 
-  return config.clientId;
+export async function resolvePublicClient(): Promise<Client | null> {
+  return getClientByName("toma.");
 }
