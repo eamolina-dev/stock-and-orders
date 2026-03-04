@@ -7,6 +7,7 @@ import { Footer } from "../components/layout/Footer";
 import { themes } from "../theme/themes";
 import { CategoryFilter } from "../components/menu/CategoryFilter";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { CartButton } from "../components/cart/CartButton";
 import { CartPanel } from "../components/cart/CartPanel";
 import { CartProvider } from "../context/CartContext";
@@ -14,7 +15,7 @@ import { ItemSearch } from "../components/menu/ItemSearch";
 import { ShopCategory } from "../components/shop/ShopCategory";
 // import ThemeDropdown from "../ThemeDropdown";
 
-export const Home = ({ user }: any) => {
+export const Home = () => {
   const [search, setSearch] = useState("");
   // const [theme, setTheme] = useState(config.theme);
   const [searching, setSearching] = useState(false);
@@ -40,7 +41,6 @@ export const Home = ({ user }: any) => {
 
   const headerStyle = searching && search.length > 0 ? "hidden" : "";
 
-  console.log(user);
 
   const content = (
     <div className={`menu-theme ${themeClass} min-h-screen relative`}>
@@ -87,6 +87,13 @@ export const Home = ({ user }: any) => {
       </main>
 
       <Footer />
+
+            <Link
+        to="/login"
+        className="fixed bottom-6 left-6 rounded-full border border-zinc-300/60 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-700 shadow-sm backdrop-blur transition hover:bg-white"
+      >
+        Admin
+      </Link>
 
       <div className="fixed bottom-6 right-6 flex flex-col gap-3">
         {config.features.whatsappButton && (

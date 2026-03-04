@@ -1,15 +1,16 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import { supabase } from "./lib/supabase";
+import { hasAdminConfigured, isConfiguredAdmin } from "./lib/auth";
 
 import Login from "./pages/Login";
 import { Home } from "./pages/Home";
-import { Dashboard } from "./pages/Dashboard";
 import { DashboardProducts } from "./components/dashboard/DashboardProducts";
 import { DashboardCategories } from "./components/dashboard/DashboardCategories";
 
 export default function App() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,8 +20,16 @@ export default function App() {
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
+      async (_event, session) => {
+        const sessionUser = session?.user ?? null;
+
+        if (sessionUser && !isConfiguredAdmin(sessionUser.email)) {
+          await supabase.auth.signOut();
+          setUser(null);
+          return;
+        }
+
+        setUser(sessionUser);
       }
     );
 
@@ -29,36 +38,44 @@ export default function App() {
 
   if (loading) return <div>Loading...</div>;
 
+  const isAdmin = isConfiguredAdmin(user?.email);
+
   return (
     <BrowserRouter>
       <Routes>
         <Route
           path="/login"
-          element={!user ? <Login /> : <Navigate to="/" />}
+          element={<Login isAdmin={isAdmin} hasAdminConfigured={hasAdminConfigured} />}
         />
 
+        <Route path="/" element={<Home />} />
+
         <Route
-          path="/"
-          element={user ? <Home user={user} /> : <Navigate to="/login" />}
+          path="/dashboard"
+          element={
+            isAdmin ? <Navigate to="/dashboard/products" replace /> : <Navigate to="/login" replace />
+          }
         />
 
         <Route
           path="/dashboard/products"
           element={
-            user ? <DashboardProducts user={user} /> : <Navigate to="/login" />
+            isAdmin ? <DashboardProducts user={user} /> : <Navigate to="/login" replace />
           }
         />
 
         <Route
           path="/dashboard/categories"
           element={
-            user ? (
+            isAdmin ? (
               <DashboardCategories user={user} />
             ) : (
-              <Navigate to="/login" />
+              <Navigate to="/login" replace />
             )
           }
         />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );

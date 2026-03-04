@@ -71,3 +71,17 @@ export default defineConfig([
   },
 ])
 ```
+
+## Admin access flow
+
+Set `VITE_ADMIN_EMAIL` in your `.env` with the only account that can open the admin dashboard.
+
+```bash
+VITE_ADMIN_EMAIL=owner@yourbusiness.com
+```
+
+Behavior implemented:
+- Home (`/`) is public for customers.
+- Login (`/login`) accepts only the configured admin email.
+- Dashboard routes are protected and available only for that admin account.
+- Supabase auth session is not persisted and token auto-refresh is disabled, so admin login does not survive browser restarts.
