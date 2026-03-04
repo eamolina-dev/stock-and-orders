@@ -5,7 +5,7 @@ import {
   updateCategory,
   deleteCategory,
 } from "../../lib/categories";
-import type { Category } from "../../types/types";
+import type { Category } from "../../lib/types/entities";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type Props = {

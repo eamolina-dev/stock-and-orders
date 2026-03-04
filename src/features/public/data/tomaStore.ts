@@ -1,6 +1,6 @@
-import type { MenuCategoryProps } from "./menuData";
+import type { MenuCategory } from "../types/menu";
 
-export const tomaStore: MenuCategoryProps[] = [
+export const tomaStore: MenuCategory[] = [
   {
     id: "cervezas",
     title: "Cervezas",

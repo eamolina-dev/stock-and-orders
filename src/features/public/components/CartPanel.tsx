@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useCart } from "../../context/CartContext";
-import { config } from "../../config/index";
+import { useCart } from "./CartContext";
+import { config } from "../../../config";
 
 export const CartPanel = () => {
   const { cart, totalPrice, removeFromCart, increaseQty, clearCart } =

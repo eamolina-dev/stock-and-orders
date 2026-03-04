@@ -1,10 +1,10 @@
 import { NavLink, useOutletContext, useSearchParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import SeedButton from "../../SeedButton";
-import CategoriesTable from "../../components/dashboard/CategoriesTable";
-import ProductsTable from "../../components/dashboard/ProductsTable";
-import { supabase } from "../../lib/supabase";
-import type { ProtectedRouteContext } from "../../components/ProtectedRoute";
+import SeedButton from "../../../SeedButton";
+import CategoriesTable from "../../../components/tables/CategoriesTable";
+import ProductsTable from "../../../components/tables/ProductsTable";
+import { supabase } from "../../../lib/supabase";
+import type { ProtectedRouteContext } from "../components/ProtectedRoute";
 
 const tabs = [
   { label: "Productos", value: "products" },

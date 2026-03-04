@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../../../lib/supabase";
 
 type AuthState = "loading" | "unauthenticated" | "authenticated";
 

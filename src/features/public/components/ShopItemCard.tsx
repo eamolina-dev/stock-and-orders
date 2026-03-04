@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useCart } from "../../context/CartContext";
+import { useCart } from "./CartContext";
 
 type Item = {
   id: number;
@@ -14,7 +14,7 @@ type Props = {
   showAddButton?: boolean;
 };
 
-export const ShopItemCard = ({ item }: Props) => {
+export const ShopItemCard = ({ item, showAddButton = true }: Props) => {
   const { addToCart } = useCart();
   const [qty, setQty] = useState(1);
 
@@ -87,13 +87,15 @@ export const ShopItemCard = ({ item }: Props) => {
           </button>
         </div>
 
-        <button
-          onClick={handleAdd}
-          disabled={item.stock === 0}
-          className="w-full text-[11px] py-1.5 rounded-lg bg-slate-900 text-white font-semibold disabled:opacity-40 active:scale-[0.98]"
-        >
-          Agregar
-        </button>
+        {showAddButton && (
+          <button
+            onClick={handleAdd}
+            disabled={item.stock === 0}
+            className="w-full text-[11px] py-1.5 rounded-lg bg-slate-900 text-white font-semibold disabled:opacity-40 active:scale-[0.98]"
+          >
+            Agregar
+          </button>
+        )}
       </div>
     </div>
   );

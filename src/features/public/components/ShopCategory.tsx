@@ -1,5 +1,5 @@
 import { ShopItemCard } from "./ShopItemCard";
-import type { MenuCategoryProps as MenuCategoryType } from "../../data/menuData";
+import type { MenuCategory as MenuCategoryType } from "../types/menu";
 
 type Props = {
   category: MenuCategoryType;

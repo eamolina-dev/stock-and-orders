@@ -1,27 +1,24 @@
-import { WhatsAppButton } from "../components/buttons/WhatsappButton";
-import { LocationButton } from "../components/buttons/LocationButton";
-import { Header } from "../components/layout/Header";
+import { WhatsAppButton } from "../components/WhatsappButton";
+import { LocationButton } from "../components/LocationButton";
+import { Header } from "../../../components/layout/Header";
 import { menus } from "../data";
-import { config } from "../config/index";
-import { Footer } from "../components/layout/Footer";
-import { themes } from "../theme/themes";
-import { CategoryFilter } from "../components/menu/CategoryFilter";
+import { config } from "../../../config";
+import { Footer } from "../../../components/layout/Footer";
+import { themes } from "../../../theme/themes";
+import { CategoryFilter } from "../components/CategoryFilter";
 import { useState } from "react";
-import { CartButton } from "../components/cart/CartButton";
-import { CartPanel } from "../components/cart/CartPanel";
-import { CartProvider } from "../context/CartContext";
-import { ItemSearch } from "../components/menu/ItemSearch";
-import { ShopCategory } from "../components/shop/ShopCategory";
-// import ThemeDropdown from "../ThemeDropdown";
+import { CartButton } from "../components/CartButton";
+import { CartPanel } from "../components/CartPanel";
+import { CartProvider } from "../components/CartContext";
+import { ItemSearch } from "../components/ItemSearch";
+import { ShopCategory } from "../components/ShopCategory";
 
 export const Home = () => {
   const [search, setSearch] = useState("");
-  // const [theme, setTheme] = useState(config.theme);
   const [searching, setSearching] = useState(false);
 
   const currentMenu = menus[config.clientId];
   const themeClass = themes[config.theme];
-  // const themeClass = themes[theme];
 
   const normalizeText = (text: string) =>
     text
@@ -40,7 +37,6 @@ export const Home = () => {
 
   const headerStyle = searching && search.length > 0 ? "hidden" : "";
 
-
   const content = (
     <div className={`menu-theme ${themeClass} min-h-screen relative`}>
       <Header
@@ -49,10 +45,6 @@ export const Home = () => {
         image="/pexels-maksgelatin-5748508.jpg"
         style={headerStyle}
       />
-
-      {/* <div className="fixed top-6 right-6 z-50">
-        <ThemeDropdown setTheme={setTheme} />
-      </div> */}
 
       {config.features.categoryFilter && (
         <CategoryFilter
@@ -103,9 +95,5 @@ export const Home = () => {
     </div>
   );
 
-  // if (config.features.cart) {
   return <CartProvider>{content}</CartProvider>;
-  // }
-
-  // return content;
 };

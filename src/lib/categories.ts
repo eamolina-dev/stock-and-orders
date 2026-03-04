@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import type { Category, CategoryInsert, CategoryUpdate } from "../types/types";
+import type { Category, CategoryInsert, CategoryUpdate } from "./types/entities";
 
 type Props = {
   from: number;

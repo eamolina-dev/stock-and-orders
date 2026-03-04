@@ -3,13 +3,6 @@ type Props = {
 };
 
 export function LocationButton({ address }: Props) {
-  // const address = encodeURIComponent(
-  //   "Elias Moyano y Fray Davila, Reduccion, Cordoba, Argentina"
-  // );
-  // const encodedAddress = encodeURIComponent(address);
-  // const url = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-  // const url = `https://www.google.com/maps/place/${encodedAddress}`;
-  // const url = encodedAddress;
 
   return (
     <a

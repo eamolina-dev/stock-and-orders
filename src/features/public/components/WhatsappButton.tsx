@@ -3,7 +3,6 @@ type Props = {
 };
 
 export function WhatsAppButton({ phone }: Props) {
-  // const phone = "5493584382061"; // número del negocio
   const message = encodeURIComponent(
     "¡Hola! Quiero hacer un pedido desde el menú digital 📋🍕"
   );

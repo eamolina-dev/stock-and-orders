@@ -6,7 +6,7 @@ import {
   deleteProduct,
 } from "../../lib/products";
 import { getCategories } from "../../lib/categories";
-import type { Product, Category } from "../../types/types";
+import type { Product, Category } from "../../lib/types/entities";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type Props = {

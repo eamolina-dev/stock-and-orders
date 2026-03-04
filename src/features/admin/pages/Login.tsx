@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import { themes } from "../../theme/themes";
-import { config } from "../../config";
-import { supabase } from "../../lib/supabase";
+import { themes } from "../../../theme/themes";
+import { config } from "../../../config";
+import { supabase } from "../../../lib/supabase";
 
 type LocationState = {
   from?: string;

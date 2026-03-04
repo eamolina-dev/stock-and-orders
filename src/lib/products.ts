@@ -1,5 +1,5 @@
-import { supabase } from "../lib/supabase"
-import type { Product, ProductInsert, ProductUpdate } from "../types/types"
+import { supabase } from "./supabase"
+import type { Product, ProductInsert, ProductUpdate } from "./types/entities"
 
 type Props = {
   from: number,
