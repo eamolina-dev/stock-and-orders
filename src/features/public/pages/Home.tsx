@@ -17,6 +17,7 @@ import { getPublicMenu } from "../../../modules/items/queries";
 import type { MenuCategory } from "../../../modules/items/types";
 import { isConfiguredAdmin } from "../../../core/auth/admin";
 import { getSession, subscribeToAuthChanges } from "../../../core/auth/session";
+import { resolvePublicClientId } from "../../../core/client/resolution";
 
 const normalizeText = (text: string) =>
   text
@@ -37,7 +38,14 @@ export const Home = () => {
     const loadPublicMenu = async () => {
       setLoading(true);
       try {
-        const parsedMenu = await getPublicMenu();
+        const clientId = await resolvePublicClientId();
+        if (!clientId) {
+          if (!mounted) return;
+          setMenu([]);
+          return;
+        }
+
+        const parsedMenu = await getPublicMenu(clientId);
         if (!mounted) return;
         setMenu(parsedMenu);
       } catch {

@@ -14,56 +14,92 @@ export type Database = {
   }
   public: {
     Tables: {
-      categories: {
+      clients: {
         Row: {
           created_at: string
           id: string
           name: string | null
-          user_id: string | null
+          owner_user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
           name?: string | null
-          user_id?: string | null
+          owner_user_id: string
         }
         Update: {
           created_at?: string
           id?: string
           name?: string | null
-          user_id?: string | null
+          owner_user_id?: string
         }
         Relationships: []
+      }
+      categories: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          name: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          name?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       products: {
         Row: {
           category_id: string | null
+          client_id: string
           created_at: string
           id: string
           image_url: string | null
           name: string | null
           price: number | null
-          user_id: string | null
         }
         Insert: {
           category_id?: string | null
+          client_id: string
           created_at?: string
           id?: string
           image_url?: string | null
           name?: string | null
           price?: number | null
-          user_id?: string | null
         }
         Update: {
           category_id?: string | null
+          client_id?: string
           created_at?: string
           id?: string
           image_url?: string | null
           name?: string | null
           price?: number | null
-          user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "products_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "products_category_id_fkey"
             columns: ["category_id"]

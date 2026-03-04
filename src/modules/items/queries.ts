@@ -8,10 +8,11 @@ type GetItemsResult = {
   count: number;
 };
 
-export async function getItems({ from, to }: RangeInput): Promise<GetItemsResult> {
+export async function getItems(clientId: string, { from, to }: RangeInput): Promise<GetItemsResult> {
   const { data, error, count } = await supabase
     .from("products")
     .select("*", { count: "exact" })
+    .eq("client_id", clientId)
     .range(from, to)
     .order("name");
 
@@ -35,11 +36,15 @@ export async function deleteItem(id: string): Promise<void> {
   if (error) throw error;
 }
 
-export async function getPublicMenu(): Promise<MenuCategory[]> {
+export async function getPublicMenu(clientId: string): Promise<MenuCategory[]> {
   const [{ data: categories, error: categoriesError }, { data: products, error: productsError }] =
     await Promise.all([
-      supabase.from("categories").select("id, name").order("name"),
-      supabase.from("products").select("id, name, price, image_url, category_id").order("name"),
+      supabase.from("categories").select("id, name").eq("client_id", clientId).order("name"),
+      supabase
+        .from("products")
+        .select("id, name, price, image_url, category_id")
+        .eq("client_id", clientId)
+        .order("name"),
     ]);
 
   if (categoriesError || productsError) {

@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DataTable } from "../../../core/tables/DataTable";
 import { TablePagination } from "../../../core/tables/TablePagination";
 import { createCategory, deleteCategory, getCategories, updateCategory } from "../../../modules/categories/queries";
 import type { CategoryEntity } from "../../../modules/categories/types";
 
-type Props = { userId: string };
+type Props = { clientId: string };
 
 const PAGE_SIZE = 10;
 
-export default function CategoriesTable({ userId }: Props) {
+export default function CategoriesTable({ clientId }: Props) {
   const [items, setItems] = useState<CategoryEntity[]>([]);
   const [edited, setEdited] = useState<Record<string, Partial<CategoryEntity>>>({});
   const [filter, setFilter] = useState("");
@@ -19,19 +19,19 @@ export default function CategoriesTable({ userId }: Props) {
 
   const maxPage = Math.max(0, Math.ceil(total / PAGE_SIZE) - 1);
 
-  useEffect(() => {
-    load(page);
-  }, [page]);
-
-  const load = async (nextPage = 0) => {
+  const load = useCallback(async (nextPage = 0) => {
     const from = nextPage * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
-    const { rows, count } = await getCategories({ from, to });
+    const { rows, count } = await getCategories(clientId, { from, to });
 
     setItems(rows);
     setTotal(count);
     setEdited({});
-  };
+  }, [clientId]);
+
+  useEffect(() => {
+    load(page);
+  }, [page, load]);
 
   const notify = (text: string) => {
     setMessage(text);
@@ -54,7 +54,7 @@ export default function CategoriesTable({ userId }: Props) {
       await Promise.all(
         Object.entries(edited).map(([id, data]) => {
           if (id.startsWith("temp_")) {
-            return createCategory({ name: data.name ?? null, user_id: userId });
+            return createCategory({ name: data.name ?? null, client_id: clientId });
           }
           return updateCategory(id, { name: data.name ?? null });
         })

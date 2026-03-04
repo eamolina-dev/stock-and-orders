@@ -1,3 +1,1 @@
-import { clients } from "./clients";
-
-export const config = clients.toma;
+export { config } from "./config";

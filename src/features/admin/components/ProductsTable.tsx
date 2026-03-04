@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DataTable } from "../../../core/tables/DataTable";
 import { TablePagination } from "../../../core/tables/TablePagination";
 import { InlineAlert } from "../../../core/ui/InlineAlert";
@@ -7,13 +7,13 @@ import { createItem, deleteItem, getItems, updateItem } from "../../../modules/i
 import type { CategoryEntity } from "../../../modules/categories/types";
 import type { Item } from "../../../modules/items/types";
 
-type Props = { userId: string };
+type Props = { clientId: string };
 
 type ItemUI = Omit<Item, "price"> & { price: string };
 
 const PAGE_SIZE = 10;
 
-export default function ProductsTable({ userId }: Props) {
+export default function ProductsTable({ clientId }: Props) {
   const [items, setItems] = useState<ItemUI[]>([]);
   const [edited, setEdited] = useState<Record<string, Partial<ItemUI>>>({});
   const [filter, setFilter] = useState("");
@@ -27,19 +27,11 @@ export default function ProductsTable({ userId }: Props) {
 
   const maxPage = Math.max(0, Math.ceil(total / PAGE_SIZE) - 1);
 
-  useEffect(() => {
-    load(page);
-  }, [page]);
-
-  useEffect(() => {
-    getCategories({ from: 0, to: 999 }).then((res) => setCategories(res.rows));
-  }, []);
-
-  const load = async (nextPage = 0) => {
+  const load = useCallback(async (nextPage = 0) => {
     const from = nextPage * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
 
-    const { rows, count } = await getItems({ from, to });
+    const { rows, count } = await getItems(clientId, { from, to });
     setItems(
       rows.map((item) => ({
         ...item,
@@ -48,7 +40,15 @@ export default function ProductsTable({ userId }: Props) {
     );
     setTotal(count);
     setEdited({});
-  };
+  }, [clientId]);
+
+  useEffect(() => {
+    load(page);
+  }, [page, load]);
+
+  useEffect(() => {
+    getCategories(clientId, { from: 0, to: 999 }).then((res) => setCategories(res.rows));
+  }, [clientId]);
 
   const parseNumber = (value: string): number | null => {
     if (!value.trim()) return null;
@@ -94,7 +94,7 @@ export default function ProductsTable({ userId }: Props) {
               price: parseNumber((data.price as string) ?? "") ?? 0,
               image_url: data.image_url ?? null,
               category_id: data.category_id ?? null,
-              user_id: userId,
+              client_id: clientId,
             });
           }
 

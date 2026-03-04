@@ -12,10 +12,11 @@ type GetCategoriesResult = {
   count: number;
 };
 
-export async function getCategories({ from, to }: RangeInput): Promise<GetCategoriesResult> {
+export async function getCategories(clientId: string, { from, to }: RangeInput): Promise<GetCategoriesResult> {
   const { data, error, count } = await supabase
     .from("categories")
     .select("*", { count: "exact" })
+    .eq("client_id", clientId)
     .range(from, to)
     .order("name");
 

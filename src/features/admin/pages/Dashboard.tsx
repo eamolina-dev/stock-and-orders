@@ -11,7 +11,7 @@ const tabs = [
 ] as const;
 
 export default function AdminDashboard() {
-  const { user } = useOutletContext<ProtectedRouteContext>();
+  const { clientId } = useOutletContext<ProtectedRouteContext>();
   const [searchParams] = useSearchParams();
 
   const activeTab = searchParams.get("tab") === "categories" ? "categories" : "products";
@@ -54,7 +54,7 @@ export default function AdminDashboard() {
         </div>
 
         <div className="w-full bg-white text-zinc-900 rounded-xl border border-zinc-200 shadow-sm overflow-x-auto">
-          {activeTab === "products" ? <ProductsTable userId={user.id} /> : <CategoriesTable userId={user.id} />}
+          {activeTab === "products" ? <ProductsTable clientId={clientId} /> : <CategoriesTable clientId={clientId} />}
         </div>
       </div>
     </div>
