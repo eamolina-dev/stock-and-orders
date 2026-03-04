@@ -1,5 +1,3 @@
-import { useNavigate } from "react-router-dom";
-
 type Props = {
   name: string;
   description: string;
@@ -8,7 +6,6 @@ type Props = {
 };
 
 export const Header = ({ name, description, image, style }: Props) => {
-  const navigate = useNavigate();
   const hasImage = !!image;
 
   return (
@@ -27,21 +24,6 @@ export const Header = ({ name, description, image, style }: Props) => {
           <div className="absolute inset-0 bg-black/70" />
         </>
       )}
-
-      {/* Botón flotante */}
-      <div className="absolute top-4 right-4 z-20">
-        <button
-          onClick={() => navigate("/dashboard/products")}
-          className="
-            px-3 py-2 text-sm rounded-md
-            bg-zinc-900/90 text-white backdrop-blur
-            hover:bg-zinc-800
-            transition
-          "
-        >
-          Dashboard
-        </button>
-      </div>
 
       <div
         className={`relative z-10 ${
