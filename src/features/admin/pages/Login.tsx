@@ -4,7 +4,7 @@ import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { themes } from "../../../theme/themes";
 import { config } from "../../../config";
-import { supabase } from "../../../lib/supabase";
+import { getSession, signInWithPassword } from "../../../core/auth/session";
 
 type LocationState = {
   from?: string;
@@ -24,9 +24,7 @@ export default function AdminLogin() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const session = await getSession();
 
       if (session?.user) {
         setIsAuthenticated(true);
@@ -45,10 +43,7 @@ export default function AdminLogin() {
     setError(null);
     setIsSubmitting(true);
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error: signInError } = await signInWithPassword(email, password);
 
     if (signInError) {
       setError("Usuario o contraseña incorrectos.");

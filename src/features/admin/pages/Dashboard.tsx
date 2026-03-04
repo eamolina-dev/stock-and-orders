@@ -1,9 +1,8 @@
 import { NavLink, useOutletContext, useSearchParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import SeedButton from "../../../SeedButton";
-import CategoriesTable from "../../../components/tables/CategoriesTable";
-import ProductsTable from "../../../components/tables/ProductsTable";
-import { supabase } from "../../../lib/supabase";
+import CategoriesTable from "../components/CategoriesTable";
+import ProductsTable from "../components/ProductsTable";
+import { signOut } from "../../../core/auth/session";
 import type { ProtectedRouteContext } from "../components/ProtectedRoute";
 
 const tabs = [
@@ -13,13 +12,9 @@ const tabs = [
 
 export default function AdminDashboard() {
   const { user } = useOutletContext<ProtectedRouteContext>();
-
   const [searchParams] = useSearchParams();
-  const activeTab = searchParams.get("tab") === "categories" ? "categories" : "products";
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-  };
+  const activeTab = searchParams.get("tab") === "categories" ? "categories" : "products";
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -37,7 +32,7 @@ export default function AdminDashboard() {
 
           <button
             type="button"
-            onClick={handleLogout}
+            onClick={signOut}
             className="rounded-md border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition hover:bg-zinc-800"
           >
             Cerrar sesión
@@ -50,9 +45,7 @@ export default function AdminDashboard() {
               key={tab.value}
               to={tab.value === "products" ? "/admin" : "/admin?tab=categories"}
               className={`px-3 py-1.5 text-sm rounded-md transition ${
-                activeTab === tab.value
-                  ? "bg-white text-zinc-900"
-                  : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                activeTab === tab.value ? "bg-white text-zinc-900" : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
               }`}
             >
               {tab.label}
@@ -61,14 +54,7 @@ export default function AdminDashboard() {
         </div>
 
         <div className="w-full bg-white text-zinc-900 rounded-xl border border-zinc-200 shadow-sm overflow-x-auto">
-          {activeTab === "products" ? (
-            <>
-              <SeedButton />
-              <ProductsTable userId={user.id} />
-            </>
-          ) : (
-            <CategoriesTable userId={user.id} />
-          )}
+          {activeTab === "products" ? <ProductsTable userId={user.id} /> : <CategoriesTable userId={user.id} />}
         </div>
       </div>
     </div>

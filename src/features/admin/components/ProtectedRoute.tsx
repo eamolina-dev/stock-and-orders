@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
-import { supabase } from "../../../lib/supabase";
+import { getSession, subscribeToAuthChanges } from "../../../core/auth/session";
 
 type AuthState = "loading" | "unauthenticated" | "authenticated";
 
@@ -18,10 +18,7 @@ export function ProtectedRoute() {
     let isMounted = true;
 
     const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
+      const session = await getSession();
       const currentUser = session?.user ?? null;
 
       if (!isMounted) return;
@@ -37,13 +34,13 @@ export function ProtectedRoute() {
 
     checkSession();
 
-    const { data: listener } = supabase.auth.onAuthStateChange(() => {
+    const subscription = subscribeToAuthChanges(() => {
       checkSession();
     });
 
     return () => {
       isMounted = false;
-      listener.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, []);
 
