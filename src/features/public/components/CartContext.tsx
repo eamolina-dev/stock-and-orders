@@ -1,7 +1,7 @@
 import { createContext, useContext, useState } from "react";
 
 export type CartItem = {
-  id: number;
+  id: string;
   name: string;
   price: number;
   qty: number;
@@ -10,9 +10,9 @@ export type CartItem = {
 type CartContextType = {
   cart: CartItem[];
   addToCart: (item: CartItem) => void;
-  removeFromCart: (id: number) => void;
-  increaseQty: (id: number) => void;
-  deleteItem: (id: number) => void;
+  removeFromCart: (id: string) => void;
+  increaseQty: (id: string) => void;
+  deleteItem: (id: string) => void;
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
@@ -39,7 +39,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     });
   };
 
-  const removeFromCart = (id: number) => {
+  const removeFromCart = (id: string) => {
     setCart((prev) =>
       prev
         .map((p) => (p.id === id ? { ...p, qty: p.qty - 1 } : p))
@@ -49,13 +49,13 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   const clearCart = () => setCart([]);
 
-  const increaseQty = (id: number) => {
+  const increaseQty = (id: string) => {
     setCart((prev) =>
       prev.map((p) => (p.id === id ? { ...p, qty: p.qty + 1 } : p))
     );
   };
 
-  const deleteItem = (id: number) => {
+  const deleteItem = (id: string) => {
     setCart((prev) => prev.filter((p) => p.id !== id));
   };
 

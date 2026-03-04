@@ -1,4 +1,3 @@
-import type { MenuKey } from "../features/public/data";
 import type { ThemeKey } from "../theme/themes";
 
 export type Features = {
@@ -10,7 +9,6 @@ export type Features = {
 };
 
 export type AppConfig = {
-  clientId: MenuKey;
   theme: ThemeKey;
   clientName: string;
   description: string;

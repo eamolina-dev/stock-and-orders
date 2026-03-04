@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useCart } from "./CartContext";
 
 type Item = {
-  id: number;
+  id: string;
   name: string;
   price: number;
   image?: string;

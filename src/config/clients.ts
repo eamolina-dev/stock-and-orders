@@ -2,7 +2,6 @@ import type { AppConfig } from "./config";
 
 export const clients: Record<string, AppConfig> = {
   toma: {
-    clientId: "toma",
     theme: "dark",
     clientName: "toma.",
     description: "Casa de bebidas",
