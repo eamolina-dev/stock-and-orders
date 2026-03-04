@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { FormEvent } from "react";
-import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { themes } from "../../../theme/themes";
-import { getSession, signInWithPassword } from "../../../core/auth/session";
+import { signInWithPassword } from "../../../core/auth/session";
 
 type LocationState = {
   from?: string;
@@ -14,28 +14,12 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
-
   const from = (location.state as LocationState | null)?.from;
+
   const themeClass = themes.dark;
-
-  useEffect(() => {
-    const checkSession = async () => {
-      const session = await getSession();
-
-      if (session?.user) {
-        setIsAuthenticated(true);
-      }
-    };
-
-    checkSession();
-  }, []);
-
-  if (isAuthenticated) {
-    return <Navigate to={from || "/admin"} replace />;
-  }
 
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -50,8 +34,7 @@ export default function AdminLogin() {
       return;
     }
 
-    setIsAuthenticated(true);
-    setIsSubmitting(false);
+    navigate(from || "/admin", { replace: true });
   };
 
   return (
@@ -67,9 +50,13 @@ export default function AdminLogin() {
         </button>
 
         <div className="card rounded-2xl border p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] accent">Acceso administrador</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] accent">
+            Acceso administrador
+          </p>
           <h1 className="title mt-2 text-2xl font-title">Panel de edición</h1>
-          <p className="muted mt-2 text-sm">Ingresá con tu cuenta administradora para gestionar la tienda.</p>
+          <p className="muted mt-2 text-sm">
+            Ingresá con tu cuenta administradora para gestionar la tienda.
+          </p>
 
           <form className="mt-6 space-y-4" onSubmit={handleLogin}>
             <div>
@@ -84,7 +71,9 @@ export default function AdminLogin() {
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium">Contraseña</label>
+              <label className="mb-1 block text-sm font-medium">
+                Contraseña
+              </label>
               <input
                 className="w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-zinc-500"
                 type="password"
@@ -106,7 +95,10 @@ export default function AdminLogin() {
           </form>
 
           <p className="muted mt-6 text-center text-xs">
-            ¿Volver al menú público? <Link className="accent font-semibold" to="/">Ir al inicio</Link>
+            ¿Volver al menú público?{" "}
+            <Link className="accent font-semibold" to="/">
+              Ir al inicio
+            </Link>
           </p>
         </div>
       </div>
