@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import { themes } from "../../../theme/themes";
+import { ThemeSwitcher } from "../../../core/ui/ThemeSwitcher";
 import { signInWithPassword } from "../../../core/auth/session";
 
 type LocationState = {
@@ -18,8 +18,6 @@ export default function AdminLogin() {
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as LocationState | null)?.from;
-
-  const themeClass = themes.dark;
 
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -38,19 +36,23 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className={`menu-theme ${themeClass} min-h-screen px-4 py-8`}>
-      <div className="mx-auto w-full max-w-md">
+    <div className="menu-theme min-h-screen px-4 py-8">
+      <div className="mx-auto flex w-full max-w-md justify-end">
+        <ThemeSwitcher />
+      </div>
+
+      <div className="mx-auto mt-3 w-full max-w-md">
         <button
           type="button"
           onClick={() => navigate("/")}
-          className="mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-300/70 bg-white/80 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-white"
+          className="mb-6 inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-sm font-medium text-[var(--color-text)] transition hover:opacity-90"
         >
           <ArrowLeft size={16} />
           Volver
         </button>
 
         <div className="card rounded-2xl border p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] accent">
+          <p className="accent text-xs font-semibold uppercase tracking-[0.2em]">
             Acceso administrador
           </p>
           <h1 className="title mt-2 text-2xl font-title">Panel de edición</h1>
@@ -62,7 +64,7 @@ export default function AdminLogin() {
             <div>
               <label className="mb-1 block text-sm font-medium">Email</label>
               <input
-                className="w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-zinc-500"
+                className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-secondary)]"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -75,7 +77,7 @@ export default function AdminLogin() {
                 Contraseña
               </label>
               <input
-                className="w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-zinc-500"
+                className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-secondary)]"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -83,7 +85,7 @@ export default function AdminLogin() {
               />
             </div>
 
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-red-500">{error}</p>}
 
             <button
               type="submit"

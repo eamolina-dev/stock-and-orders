@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { Shield } from "lucide-react";
 import { Header } from "../../../core/layout/Header";
 import { Footer } from "../../../core/layout/Footer";
-import { themes } from "../../../theme/themes";
+import { ThemeSwitcher } from "../../../core/ui/ThemeSwitcher";
 import { CategoryFilter } from "../components/CategoryFilter";
 import { CartButton } from "../components/CartButton";
 import { CartPanel } from "../components/CartPanel";
@@ -15,6 +13,7 @@ import type { MenuCategory } from "../../../modules/items/types";
 import { isConfiguredAdmin } from "../../../core/auth/admin";
 import { getSession, subscribeToAuthChanges } from "../../../core/auth/session";
 import { resolvePublicClient } from "../../../core/client/resolution";
+import { AdminShortcutButton } from "../components/AdminShortcutButton";
 
 const normalizeText = (text: string) =>
   text
@@ -85,12 +84,15 @@ export const Home = () => {
     [menu, search]
   );
 
-  const themeClass = themes.dark;
   const headerStyle = searching && search.length > 0 ? "hidden" : "";
 
   return (
     <CartProvider>
-      <div className={`menu-theme ${themeClass} min-h-screen relative`}>
+      <div className="menu-theme relative">
+        <div className="fixed right-4 top-4 z-50">
+          <ThemeSwitcher />
+        </div>
+
         <Header
           name={clientName}
           description="Casa de bebidas"
@@ -100,16 +102,7 @@ export const Home = () => {
 
         <CategoryFilter categories={menu.map((c) => ({ id: c.id, title: c.title }))} />
 
-        <main className="max-w-2xl mx-auto px-4 pt-8 pb-24">
-          {isAdminSession && (
-            <div className="mb-4 rounded-xl border border-emerald-400/40 bg-emerald-50 p-3 text-sm text-emerald-800">
-              <Link to="/admin" className="inline-flex items-center gap-2 font-semibold hover:underline">
-                <Shield size={14} />
-                Estás navegando como admin. Ir al dashboard.
-              </Link>
-            </div>
-          )}
-
+        <main className="mx-auto max-w-2xl px-4 pb-24 pt-8">
           <ItemSearch
             search={search}
             placeholder="Buscar bebida ..."
@@ -117,7 +110,7 @@ export const Home = () => {
             setSearching={setSearching}
           />
 
-          {loading && <div className="text-center py-10 text-sm text-slate-400">Cargando productos...</div>}
+          {loading && <div className="py-10 text-center text-sm text-[var(--color-text-muted)]">Cargando productos...</div>}
 
           {!loading &&
             filteredMenu.map((category) => (
@@ -125,16 +118,14 @@ export const Home = () => {
             ))}
 
           {!loading && filteredMenu.length === 0 && search.length > 0 && (
-            <div className="text-center py-10 text-sm text-slate-400">No encontramos productos</div>
+            <div className="py-10 text-center text-sm text-[var(--color-text-muted)]">No encontramos productos</div>
           )}
         </main>
 
         <Footer />
 
-        <div className="fixed bottom-6 right-6 flex flex-col gap-3">
-          <CartButton />
-        </div>
-
+        <AdminShortcutButton visible={isAdminSession} />
+        <CartButton />
         <CartPanel />
       </div>
     </CartProvider>

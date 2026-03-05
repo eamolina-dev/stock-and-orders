@@ -109,28 +109,28 @@ export default function CategoriesTable({ clientId }: Props) {
           placeholder="Filtrar..."
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="px-3 py-2 text-sm rounded-md border border-zinc-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
 
         <button
           disabled={saving || !hasChanges || hasErrors}
           onClick={handleSave}
           className={`px-4 py-2 text-sm rounded-md transition ${
-            hasChanges && !hasErrors ? "bg-emerald-600 hover:bg-emerald-500 text-white" : "bg-zinc-200 text-zinc-400 cursor-not-allowed"
+            hasChanges && !hasErrors ? "bg-emerald-600 hover:bg-emerald-500 text-white" : "bg-[var(--color-surface)] text-[var(--color-text-muted)] cursor-not-allowed"
           }`}
         >
           Guardar cambios
         </button>
       </div>
 
-      <button onClick={handleAddRow} className="self-start px-4 py-2 text-sm rounded-md bg-zinc-900 text-white hover:bg-zinc-800">
+      <button onClick={handleAddRow} className="self-start rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm text-[var(--color-bg)] hover:opacity-90">
         + Agregar categoría
       </button>
 
       {message && <div className="text-sm text-emerald-600">{message}</div>}
       {hasErrors && <div className="text-sm text-red-500">Todas las categorías deben tener nombre</div>}
 
-      <div className="border border-zinc-200 rounded-lg bg-white">
+      <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)]">
         <div className="overflow-x-auto">
           <DataTable
             columns={
@@ -145,7 +145,7 @@ export default function CategoriesTable({ clientId }: Props) {
               return (
                 <tr
                   key={item.id}
-                  className={`${i % 2 === 0 ? "bg-white" : "bg-zinc-50"} hover:bg-emerald-50 transition-colors ${isEdited ? "ring-1 ring-amber-400" : ""}`}
+                  className={`${i % 2 === 0 ? "bg-[var(--color-card)]" : "bg-[var(--color-surface)]"} hover:bg-emerald-50 transition-colors ${isEdited ? "ring-1 ring-amber-400" : ""}`}
                 >
                   <td className="px-3 py-2">
                     <input value={item.name || ""} onChange={(e) => handleChange(item.id, e.target.value)} className="w-full bg-transparent outline-none px-2 py-1 rounded" />

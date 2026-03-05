@@ -36,8 +36,8 @@ export const ShopItemCard = ({ item, showAddButton = true }: Props) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl border shadow-sm overflow-hidden text-slate-900">
-      <div className="aspect-square bg-gray-100">
+    <div className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-text)] shadow-sm">
+      <div className="aspect-square bg-[var(--color-surface)]">
         {item.image ? (
           <img
             src={item.image}
@@ -46,7 +46,7 @@ export const ShopItemCard = ({ item, showAddButton = true }: Props) => {
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+          <div className="flex h-full w-full items-center justify-center text-xs text-[var(--color-text-muted)]">
             Sin imagen
           </div>
         )}
@@ -63,7 +63,7 @@ export const ShopItemCard = ({ item, showAddButton = true }: Props) => {
           </span>
 
           {typeof item.stock === "number" && (
-            <span className="text-[10px] text-gray-500">
+            <span className="text-[10px] text-[var(--color-text-muted)]">
               Stock: {item.stock}
             </span>
           )}
@@ -72,7 +72,7 @@ export const ShopItemCard = ({ item, showAddButton = true }: Props) => {
         <div className="flex items-center gap-2 pt-0.5">
           <button
             onClick={decrease}
-            className="w-6 h-6 rounded border text-xs active:scale-95"
+            className="h-6 w-6 rounded border border-[var(--color-border)] bg-[var(--color-surface)] text-xs active:scale-95"
           >
             –
           </button>
@@ -81,7 +81,7 @@ export const ShopItemCard = ({ item, showAddButton = true }: Props) => {
 
           <button
             onClick={increase}
-            className="w-6 h-6 rounded border text-xs active:scale-95"
+            className="h-6 w-6 rounded border border-[var(--color-border)] bg-[var(--color-surface)] text-xs active:scale-95"
           >
             +
           </button>
@@ -91,7 +91,7 @@ export const ShopItemCard = ({ item, showAddButton = true }: Props) => {
           <button
             onClick={handleAdd}
             disabled={item.stock === 0}
-            className="w-full text-[11px] py-1.5 rounded-lg bg-slate-900 text-white font-semibold disabled:opacity-40 active:scale-[0.98]"
+            className="w-full rounded-lg bg-[var(--color-primary)] py-1.5 text-[11px] font-semibold text-[var(--color-bg)] active:scale-[0.98] disabled:opacity-40"
           >
             Agregar
           </button>
