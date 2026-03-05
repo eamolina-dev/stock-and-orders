@@ -18,7 +18,7 @@ export function TablePagination({ page, maxPage, onChange }: Props) {
         }}
       />
 
-      <span className="text-zinc-500">
+      <span className="text-[var(--color-text-muted)]">
         Página {page + 1} / {maxPage + 1}
       </span>
 
