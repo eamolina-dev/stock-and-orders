@@ -28,7 +28,7 @@ export const Home = () => {
   const [menu, setMenu] = useState<MenuCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdminSession, setIsAdminSession] = useState(false);
-  const [clientName, setClientName] = useState("toma.");
+  const [clientName, setClientName] = useState("toma");
   const location = useLocation();
   const isAdminView = location.pathname.startsWith("/admin");
 
@@ -39,6 +39,9 @@ export const Home = () => {
       setLoading(true);
       try {
         const client = await resolvePublicClient();
+
+        console.log(client);
+
         if (!client?.id) {
           if (!mounted) return;
           setMenu([]);
