@@ -11,9 +11,12 @@ import { CartProvider } from "../components/CartContext";
 import { ItemSearch } from "../components/ItemSearch";
 import { ShopCategory } from "../components/ShopCategory";
 import { getPublicMenu } from "../../../modules/items/queries";
-import type { MenuCategory } from "../../../modules/items/types";
+import type { ShopCategory as ShopCategoryType } from "../../../modules/items/types";
 import { isConfiguredAdmin } from "../../../shared/auth/admin";
-import { getSession, subscribeToAuthChanges } from "../../../shared/auth/session";
+import {
+  getSession,
+  subscribeToAuthChanges,
+} from "../../../shared/auth/session";
 import type { ClientShopLayoutContext } from "../layouts/ClientShopLayout";
 
 const normalizeText = (text: string) =>
@@ -25,7 +28,7 @@ const normalizeText = (text: string) =>
 export default function ShopHome() {
   const [search, setSearch] = useState("");
   const [searching, setSearching] = useState(false);
-  const [menu, setMenu] = useState<MenuCategory[]>([]);
+  const [menu, setMenu] = useState<ShopCategoryType[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdminSession, setIsAdminSession] = useState(false);
   const { client, clientSlug } = useOutletContext<ClientShopLayoutContext>();

@@ -1,5 +1,5 @@
 import { supabase } from "../../lib/supabase";
-import type { MenuCategory, Item, ItemInsert, ItemUpdate } from "./types";
+import type { ShopCategory, Item, ItemInsert, ItemUpdate } from "./types";
 
 type RangeInput = { from: number; to: number };
 
@@ -36,7 +36,7 @@ export async function deleteItem(id: string): Promise<void> {
   if (error) throw error;
 }
 
-export async function getPublicMenu(clientId: string): Promise<MenuCategory[]> {
+export async function getPublicMenu(clientId: string): Promise<ShopCategory[]> {
   const [{ data: categories, error: categoriesError }, { data: products, error: productsError }] =
     await Promise.all([
       supabase.from("categories").select("id, name").eq("client_id", clientId).order("name"),
@@ -51,7 +51,7 @@ export async function getPublicMenu(clientId: string): Promise<MenuCategory[]> {
     throw categoriesError ?? productsError;
   }
 
-  const productsByCategory = new Map<string, MenuCategory["items"]>();
+  const productsByCategory = new Map<string, ShopCategory["items"]>();
 
   for (const product of products ?? []) {
     if (!product.category_id || !product.name || typeof product.price !== "number") continue;

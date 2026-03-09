@@ -4,15 +4,15 @@ export type Item = Product;
 export type ItemInsert = ProductInsert;
 export type ItemUpdate = ProductUpdate;
 
-export type MenuItem = {
+export type ShopItem = {
   id: string;
   name: string;
   price: number;
   image?: string;
 };
 
-export type MenuCategory = {
+export type ShopCategory = {
   id: string;
   title: string;
-  items: MenuItem[];
+  items: ShopItem[];
 };

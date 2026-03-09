@@ -1,8 +1,8 @@
 import { ShopItemCard } from "./ShopItemCard";
-import type { MenuCategory as MenuCategoryType } from "../../../modules/items/types";
+import type { ShopCategory as ShopCategoryType } from "../../../modules/items/types";
 
 type Props = {
-  category: MenuCategoryType;
+  category: ShopCategoryType;
   showAddButton?: boolean;
 };
 
