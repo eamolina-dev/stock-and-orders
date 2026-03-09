@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { Shield } from "lucide-react";
 import { Header } from "../../../core/layout/Header";
 import { Footer } from "../../../core/layout/Footer";
@@ -29,6 +29,8 @@ export const Home = () => {
   const [loading, setLoading] = useState(true);
   const [isAdminSession, setIsAdminSession] = useState(false);
   const [clientName, setClientName] = useState("toma.");
+  const location = useLocation();
+  const isAdminView = location.pathname.startsWith("/admin");
 
   useEffect(() => {
     let mounted = true;
@@ -79,7 +81,9 @@ export const Home = () => {
       menu
         .map((cat) => ({
           ...cat,
-          items: cat.items.filter((item) => normalizeText(item.name).includes(normalizeText(search))),
+          items: cat.items.filter((item) =>
+            normalizeText(item.name).includes(normalizeText(search))
+          ),
         }))
         .filter((cat) => cat.items.length > 0),
     [menu, search]
@@ -91,6 +95,15 @@ export const Home = () => {
   return (
     <CartProvider>
       <div className={`menu-theme ${themeClass} min-h-screen relative`}>
+        {isAdminView && (
+          <Link
+            to="/admin/dashboard"
+            className="fixed top-6 right-6 z-50 rounded-xl bg-black px-4 py-2 text-sm font-medium text-white shadow"
+          >
+            Panel de edición
+          </Link>
+        )}
+
         <Header
           name={clientName}
           description="Casa de bebidas"
@@ -98,12 +111,17 @@ export const Home = () => {
           style={headerStyle}
         />
 
-        <CategoryFilter categories={menu.map((c) => ({ id: c.id, title: c.title }))} />
+        <CategoryFilter
+          categories={menu.map((c) => ({ id: c.id, title: c.title }))}
+        />
 
         <main className="max-w-2xl mx-auto px-4 pt-8 pb-24">
           {isAdminSession && (
             <div className="mb-4 rounded-xl border border-emerald-400/40 bg-emerald-50 p-3 text-sm text-emerald-800">
-              <Link to="/admin" className="inline-flex items-center gap-2 font-semibold hover:underline">
+              <Link
+                to="/admin"
+                className="inline-flex items-center gap-2 font-semibold hover:underline"
+              >
                 <Shield size={14} />
                 Estás navegando como admin. Ir al dashboard.
               </Link>
@@ -117,15 +135,25 @@ export const Home = () => {
             setSearching={setSearching}
           />
 
-          {loading && <div className="text-center py-10 text-sm text-slate-400">Cargando productos...</div>}
+          {loading && (
+            <div className="text-center py-10 text-sm text-slate-400">
+              Cargando productos...
+            </div>
+          )}
 
           {!loading &&
             filteredMenu.map((category) => (
-              <ShopCategory key={category.id} category={category} showAddButton />
+              <ShopCategory
+                key={category.id}
+                category={category}
+                showAddButton
+              />
             ))}
 
           {!loading && filteredMenu.length === 0 && search.length > 0 && (
-            <div className="text-center py-10 text-sm text-slate-400">No encontramos productos</div>
+            <div className="text-center py-10 text-sm text-slate-400">
+              No encontramos productos
+            </div>
           )}
         </main>
 

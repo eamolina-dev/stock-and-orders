@@ -14,14 +14,15 @@ export default function AdminDashboard() {
   const { clientId } = useOutletContext<ProtectedRouteContext>();
   const [searchParams] = useSearchParams();
 
-  const activeTab = searchParams.get("tab") === "categories" ? "categories" : "products";
+  const activeTab =
+    searchParams.get("tab") === "categories" ? "categories" : "products";
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
       <div className="w-full max-w-6xl mx-auto px-4 py-8 flex flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <NavLink
-            to="/"
+            to="/admin"
             className="inline-flex items-center gap-2 rounded-md border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition hover:bg-zinc-800"
           >
             <ArrowLeft size={16} />
@@ -45,7 +46,9 @@ export default function AdminDashboard() {
               key={tab.value}
               to={tab.value === "products" ? "/admin" : "/admin?tab=categories"}
               className={`px-3 py-1.5 text-sm rounded-md transition ${
-                activeTab === tab.value ? "bg-white text-zinc-900" : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                activeTab === tab.value
+                  ? "bg-white text-zinc-900"
+                  : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
               }`}
             >
               {tab.label}
@@ -54,7 +57,11 @@ export default function AdminDashboard() {
         </div>
 
         <div className="w-full bg-white text-zinc-900 rounded-xl border border-zinc-200 shadow-sm overflow-x-auto">
-          {activeTab === "products" ? <ProductsTable clientId={clientId} /> : <CategoriesTable clientId={clientId} />}
+          {activeTab === "products" ? (
+            <ProductsTable clientId={clientId} />
+          ) : (
+            <CategoriesTable clientId={clientId} />
+          )}
         </div>
       </div>
     </div>

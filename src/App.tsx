@@ -9,11 +9,16 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* PUBLIC */}
         <Route path="/" element={<Home />} />
+
+        {/* ADMIN LOGIN */}
         <Route path="/admin/login" element={<AdminLogin />} />
 
+        {/* ADMIN */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin" element={<Home />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
