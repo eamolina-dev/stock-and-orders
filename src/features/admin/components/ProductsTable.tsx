@@ -6,6 +6,7 @@ import { getCategories } from "../../../modules/categories/queries";
 import { createItem, deleteItem, getItems, updateItem } from "../../../modules/items/queries";
 import type { CategoryEntity } from "../../../modules/categories/types";
 import type { Item } from "../../../modules/items/types";
+import { supabase } from "../../../lib/supabase";
 
 type Props = { clientId: string };
 
@@ -24,6 +25,9 @@ export default function ProductsTable({ clientId }: Props) {
   const [saving, setSaving] = useState(false);
   const [page, setPage] = useState(0);
   const [total, setTotal] = useState(0);
+  const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({});
+  const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({});
+  const [uploadingIds, setUploadingIds] = useState<string[]>([]);
 
   const maxPage = Math.max(0, Math.ceil(total / PAGE_SIZE) - 1);
 
@@ -148,6 +152,108 @@ export default function ProductsTable({ clientId }: Props) {
     }
   };
 
+  const getExtensionFromFile = (file: File): string | null => {
+    const mimeMap: Record<string, string> = {
+      "image/jpeg": "jpeg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "image/gif": "gif",
+      "image/svg+xml": "svg",
+      "image/avif": "avif",
+      "image/bmp": "bmp",
+      "image/tiff": "tiff",
+      "image/x-icon": "ico",
+    };
+
+    if (file.type && mimeMap[file.type]) return mimeMap[file.type];
+
+    const splitName = file.name.split(".");
+    const byName = splitName.length > 1 ? splitName.pop()?.toLowerCase() : null;
+    return byName || null;
+  };
+
+  const slugify = (value: string) =>
+    value
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+
+  const handleFileChange = (itemId: string, file: File | null) => {
+    setSelectedFiles((prev) => ({ ...prev, [itemId]: file }));
+
+    if (previewUrls[itemId]) {
+      URL.revokeObjectURL(previewUrls[itemId]);
+    }
+
+    if (!file) {
+      setPreviewUrls((prev) => {
+        const copy = { ...prev };
+        delete copy[itemId];
+        return copy;
+      });
+      return;
+    }
+
+    const nextPreviewUrl = URL.createObjectURL(file);
+    setPreviewUrls((prev) => ({ ...prev, [itemId]: nextPreviewUrl }));
+  };
+
+  const handleUploadImage = async (item: ItemUI) => {
+    const file = selectedFiles[item.id];
+    if (!file) {
+      notifyError("Seleccioná una imagen antes de subir");
+      return;
+    }
+
+    const slug = slugify(item.name ?? "");
+    if (!slug) {
+      notifyError("El producto debe tener nombre para generar el archivo");
+      return;
+    }
+
+    const extension = getExtensionFromFile(file);
+    if (!extension) {
+      notifyError("No se pudo detectar la extensión del archivo");
+      return;
+    }
+
+    const fileName = `${slug}.${extension}`;
+    const filePath = `new-images/${fileName}`;
+
+    setUploadingIds((prev) => [...prev, item.id]);
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from("toma-images")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from("toma-images").getPublicUrl(filePath);
+      const imageUrl = data.publicUrl;
+
+      await updateItem(item.id, { image_url: imageUrl });
+
+      setItems((prev) =>
+        prev.map((row) => (row.id === item.id ? { ...row, image_url: imageUrl } : row))
+      );
+      setEdited((prev) => {
+        const copy = { ...prev };
+        if (copy[item.id]) {
+          copy[item.id] = { ...copy[item.id], image_url: imageUrl };
+        }
+        return copy;
+      });
+      notifySuccess("Imagen subida y producto actualizado");
+    } catch {
+      notifyError("No se pudo subir la imagen");
+    } finally {
+      setUploadingIds((prev) => prev.filter((id) => id !== item.id));
+    }
+  };
+
+
   const filteredItems = useMemo(() => {
     if (!filter.trim()) return items;
     return items.filter((item) => (item.name ?? "").toLowerCase().includes(filter.toLowerCase()));
@@ -212,7 +318,28 @@ export default function ProductsTable({ clientId }: Props) {
                 />
               </td>
               <td className="px-3 py-2">
-                <input value={item.image_url ?? ""} onChange={(e) => handleChange(item.id, "image_url", e.target.value)} placeholder="URL" className="w-full bg-transparent outline-none px-2 py-1 rounded" />
+                <div className="flex flex-col gap-2">
+                  <input value={item.image_url ?? ""} onChange={(e) => handleChange(item.id, "image_url", e.target.value)} placeholder="URL" className="w-full bg-transparent outline-none px-2 py-1 rounded" />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileChange(item.id, e.target.files?.[0] ?? null)}
+                      className="max-w-[220px] text-xs"
+                    />
+                    <button
+                      type="button"
+                      disabled={item.id.startsWith("temp_") || uploadingIds.includes(item.id)}
+                      onClick={() => handleUploadImage(item)}
+                      className="px-2 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-500 disabled:bg-zinc-300 disabled:text-zinc-500"
+                    >
+                      {uploadingIds.includes(item.id) ? "Subiendo..." : "Subir Imagen"}
+                    </button>
+                  </div>
+                  {previewUrls[item.id] && (
+                    <img src={previewUrls[item.id]} alt="Vista previa" className="h-12 w-12 rounded object-cover border border-zinc-200" />
+                  )}
+                </div>
               </td>
               <td className="px-3 py-2">
                 <select value={item.category_id ?? ""} onChange={(e) => handleChange(item.id, "category_id", e.target.value)} className="bg-transparent outline-none">

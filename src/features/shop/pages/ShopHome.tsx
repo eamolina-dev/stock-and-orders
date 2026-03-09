@@ -4,7 +4,6 @@ import { Shield } from "lucide-react";
 import { Header } from "../../../shared/layout/Header";
 import { Footer } from "../../../shared/layout/Footer";
 import { themes } from "../../../theme/themes";
-import { CategoryFilter } from "../components/CategoryFilter";
 import { CartButton } from "../components/CartButton";
 import { CartPanel } from "../components/CartPanel";
 import { CartProvider } from "../components/CartContext";
@@ -31,6 +30,7 @@ export default function ShopHome() {
   const [menu, setMenu] = useState<ShopCategoryType[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdminSession, setIsAdminSession] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const { client, clientSlug } = useOutletContext<ClientShopLayoutContext>();
 
   useEffect(() => {
@@ -43,9 +43,15 @@ export default function ShopHome() {
 
         if (!mounted) return;
         setMenu(parsedMenu);
+
+        const defaultCategory = parsedMenu.find(
+          (category) => normalizeText(category.title) === normalizeText("Cervezas")
+        );
+        setSelectedCategoryId(defaultCategory?.id ?? parsedMenu[0]?.id ?? null);
       } catch {
         if (!mounted) return;
         setMenu([]);
+        setSelectedCategoryId(null);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -73,6 +79,7 @@ export default function ShopHome() {
   const filteredMenu = useMemo(
     () =>
       menu
+        .filter((cat) => !selectedCategoryId || cat.id === selectedCategoryId)
         .map((cat) => ({
           ...cat,
           items: cat.items.filter((item) =>
@@ -80,7 +87,7 @@ export default function ShopHome() {
           ),
         }))
         .filter((cat) => cat.items.length > 0),
-    [menu, search]
+    [menu, search, selectedCategoryId]
   );
 
   const themeClass = themes.dark;
@@ -96,9 +103,24 @@ export default function ShopHome() {
           style={headerStyle}
         />
 
-        <CategoryFilter
-          categories={menu.map((c) => ({ id: c.id, title: c.title }))}
-        />
+        <div className="sticky top-0 z-30 bg-[var(--bg)]/80 backdrop-blur border-b">
+          <div className="flex gap-2 overflow-x-auto px-4 py-3 max-w-2xl mx-auto">
+            {menu.map((category) => (
+              <button
+                key={category.id}
+                type="button"
+                className={`px-4 py-2 rounded-full border text-sm whitespace-nowrap transition ${
+                  selectedCategoryId === category.id
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white/80 hover:bg-white"
+                }`}
+                onClick={() => setSelectedCategoryId(category.id)}
+              >
+                {category.title}
+              </button>
+            ))}
+          </div>
+        </div>
 
         <main className="max-w-2xl mx-auto px-4 pt-8 pb-24">
           {isAdminSession && (
