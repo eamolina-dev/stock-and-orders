@@ -20,6 +20,7 @@ export function ClientShopLayout() {
       setLoading(true);
       const resolvedClient = await resolveClientBySlug(clientSlug);
 
+      console.log(resolvedClient);
       if (!isMounted) return;
 
       setClient(resolvedClient);
