@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
-import { getSession, subscribeToAuthChanges } from "../../../core/auth/session";
+import { getSession, subscribeToAuthChanges } from "../../../shared/auth/session";
 import { getClientByOwner } from "../../../modules/clients/queries";
 
 type AuthState = "loading" | "unauthenticated" | "authenticated";

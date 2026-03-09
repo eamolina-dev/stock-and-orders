@@ -2,7 +2,7 @@ import { NavLink, useOutletContext, useSearchParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import CategoriesTable from "../components/CategoriesTable";
 import ProductsTable from "../components/ProductsTable";
-import { signOut } from "../../../core/auth/session";
+import { signOut } from "../../../shared/auth/session";
 import type { ProtectedRouteContext } from "../components/ProtectedRoute";
 
 const tabs = [

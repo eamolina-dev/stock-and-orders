@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { DataTable } from "../../../core/tables/DataTable";
-import { TablePagination } from "../../../core/tables/TablePagination";
+import { DataTable } from "../../../shared/tables/DataTable";
+import { TablePagination } from "../../../shared/tables/TablePagination";
 import { createCategory, deleteCategory, getCategories, updateCategory } from "../../../modules/categories/queries";
 import type { CategoryEntity } from "../../../modules/categories/types";
 

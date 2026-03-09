@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { DataTable } from "../../../core/tables/DataTable";
-import { TablePagination } from "../../../core/tables/TablePagination";
-import { InlineAlert } from "../../../core/ui/InlineAlert";
+import { DataTable } from "../../../shared/tables/DataTable";
+import { TablePagination } from "../../../shared/tables/TablePagination";
+import { InlineAlert } from "../../../shared/ui/InlineAlert";
 import { getCategories } from "../../../modules/categories/queries";
 import { createItem, deleteItem, getItems, updateItem } from "../../../modules/items/queries";
 import type { CategoryEntity } from "../../../modules/categories/types";

@@ -1,4 +1,4 @@
-import type { Product, ProductInsert, ProductUpdate } from "../../core/types/entities";
+import type { Product, ProductInsert, ProductUpdate } from "../../shared/types/entities";
 
 export type Item = Product;
 export type ItemInsert = ProductInsert;

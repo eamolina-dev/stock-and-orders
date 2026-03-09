@@ -1,6 +1,6 @@
-import { getSession } from "../auth/session";
-import { getClientByName, getClientByOwner } from "../../modules/clients/queries";
-import type { Client } from "../../modules/clients/types";
+import { getSession } from "../../shared/auth/session";
+import { getClientByName, getClientByOwner } from "./queries";
+import type { Client } from "./types";
 import { supabase } from "../../lib/supabase";
 
 export async function resolveClientIdFromSession(): Promise<string | null> {

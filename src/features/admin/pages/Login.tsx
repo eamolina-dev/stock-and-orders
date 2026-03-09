@@ -3,7 +3,7 @@ import type { FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { themes } from "../../../theme/themes";
-import { signInWithPassword } from "../../../core/auth/session";
+import { signInWithPassword } from "../../../shared/auth/session";
 
 type LocationState = {
   from?: string;

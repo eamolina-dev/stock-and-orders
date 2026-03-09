@@ -1,3 +1,3 @@
-import type { Tables } from "../../core/types/database";
+import type { Tables } from "../../shared/types/database";
 
 export type Client = Tables<"clients">;

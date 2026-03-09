@@ -1,20 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { Shield } from "lucide-react";
-import { Header } from "../../../core/layout/Header";
-import { Footer } from "../../../core/layout/Footer";
-import { themes } from "../../../theme/themes";
-import { CategoryFilter } from "../components/CategoryFilter";
-import { CartButton } from "../components/CartButton";
-import { CartPanel } from "../components/CartPanel";
-import { CartProvider } from "../components/CartContext";
-import { ItemSearch } from "../components/ItemSearch";
-import { ShopCategory } from "../components/ShopCategory";
-import { getPublicMenu } from "../../../modules/items/queries";
-import type { MenuCategory } from "../../../modules/items/types";
-import { isConfiguredAdmin } from "../../../core/auth/admin";
-import { getSession, subscribeToAuthChanges } from "../../../core/auth/session";
-import { resolvePublicClient } from "../../../core/client/resolution";
+import { Header } from "../layout/Header";
+import { Footer } from "../layout/Footer";
+import { themes } from "../../theme/themes";
+import { CategoryFilter } from "../../features/shop/components/CategoryFilter";
+import { CartButton } from "../../features/shop/components/CartButton";
+import { CartPanel } from "../../features/shop/components/CartPanel";
+import { CartProvider } from "../../features/shop/components/CartContext";
+import { ItemSearch } from "../../features/shop/components/ItemSearch";
+import { ShopCategory } from "../../features/shop/components/ShopCategory";
+import { getPublicMenu } from "../../modules/items/queries";
+import type { MenuCategory } from "../../modules/items/types";
+import { isConfiguredAdmin } from "../auth/admin";
+import { getSession, subscribeToAuthChanges } from "../auth/session";
+import { resolvePublicClient } from "../../modules/clients/resolution";
 
 const normalizeText = (text: string) =>
   text
