@@ -10,6 +10,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         {/* PUBLIC */}
+        <Route path="/:clientSlug/products" element={<Home />} />
         <Route path="/" element={<Home />} />
 
         {/* ADMIN LOGIN */}

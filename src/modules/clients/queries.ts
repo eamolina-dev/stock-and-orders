@@ -24,3 +24,15 @@ export async function getClientByName(name: string): Promise<Client | null> {
 
   return data;
 }
+
+export async function getClientBySlug(slug: string): Promise<Client | null> {
+  const { data, error } = await supabase
+    .from("clients")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return data;
+}

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useParams } from "react-router-dom";
 import { Shield } from "lucide-react";
 import { Header } from "../layout/Header";
 import { Footer } from "../layout/Footer";
@@ -14,7 +14,7 @@ import { getPublicMenu } from "../../modules/items/queries";
 import type { MenuCategory } from "../../modules/items/types";
 import { isConfiguredAdmin } from "../auth/admin";
 import { getSession, subscribeToAuthChanges } from "../auth/session";
-import { resolvePublicClient } from "../../modules/clients/resolution";
+import { resolveClientBySlug } from "../../modules/clients/resolution";
 
 const normalizeText = (text: string) =>
   text
@@ -28,7 +28,9 @@ export const Home = () => {
   const [menu, setMenu] = useState<MenuCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdminSession, setIsAdminSession] = useState(false);
-  const [clientName, setClientName] = useState("toma");
+  const [clientName, setClientName] = useState("");
+  const [clientNotFound, setClientNotFound] = useState(false);
+  const { clientSlug } = useParams<{ clientSlug: string }>();
   const location = useLocation();
   const isAdminView = location.pathname.startsWith("/admin");
 
@@ -38,15 +40,17 @@ export const Home = () => {
     const loadPublicMenu = async () => {
       setLoading(true);
       try {
-        const client = await resolvePublicClient();
-
-        console.log(client);
+        const client = await resolveClientBySlug(clientSlug);
 
         if (!client?.id) {
           if (!mounted) return;
+          setClientNotFound(true);
           setMenu([]);
           return;
         }
+
+        if (!mounted) return;
+        setClientNotFound(false);
 
         const parsedMenu = await getPublicMenu(client.id);
         if (!mounted) return;
@@ -54,6 +58,7 @@ export const Home = () => {
         setMenu(parsedMenu);
       } catch {
         if (!mounted) return;
+        setClientNotFound(false);
         setMenu([]);
       } finally {
         if (mounted) setLoading(false);
@@ -77,7 +82,7 @@ export const Home = () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [clientSlug]);
 
   const filteredMenu = useMemo(
     () =>
@@ -153,7 +158,14 @@ export const Home = () => {
               />
             ))}
 
-          {!loading && filteredMenu.length === 0 && search.length > 0 && (
+
+          {!loading && clientNotFound && (
+            <div className="text-center py-10 text-sm text-slate-400">
+              Client not found
+            </div>
+          )}
+
+          {!loading && !clientNotFound && filteredMenu.length === 0 && search.length > 0 && (
             <div className="text-center py-10 text-sm text-slate-400">
               No encontramos productos
             </div>
