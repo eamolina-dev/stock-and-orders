@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Navigate, Outlet, useLocation, useParams } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
 import { getSession, subscribeToAuthChanges } from "../../../shared/auth/session";
-import { getClientByOwner } from "../../../modules/clients/queries";
+import { resolveClientBySlug } from "../../../modules/clients/resolution";
 
 type AuthState = "loading" | "unauthenticated" | "authenticated";
 
 export type ProtectedRouteContext = {
   user: User;
   clientId: string;
+  clientSlug: string;
 };
 
 export function ProtectedRoute() {
@@ -16,6 +17,7 @@ export function ProtectedRoute() {
   const [user, setUser] = useState<User | null>(null);
   const [clientId, setClientId] = useState<string | null>(null);
   const location = useLocation();
+  const { clientSlug } = useParams<{ clientSlug: string }>();
 
   useEffect(() => {
     let isMounted = true;
@@ -31,9 +33,9 @@ export function ProtectedRoute() {
         setClientId(null);
         setAuthState("unauthenticated");
       } else {
-        const client = await getClientByOwner(currentUser.id);
+        const client = await resolveClientBySlug(clientSlug);
 
-        if (!client) {
+        if (!client || !client.id) {
           setUser(null);
           setClientId(null);
           setAuthState("unauthenticated");
@@ -56,7 +58,7 @@ export function ProtectedRoute() {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [clientSlug]);
 
   if (authState === "loading") {
     return <div className="p-6 text-center">Validando acceso...</div>;
@@ -65,20 +67,16 @@ export function ProtectedRoute() {
   if (authState === "unauthenticated") {
     return (
       <Navigate
-        to="/admin/login"
+        to={`/${clientSlug}/admin/login`}
         replace
         state={{ from: location.pathname + location.search }}
       />
     );
   }
 
-  if (!user || !clientId) {
+  if (!user || !clientId || !clientSlug) {
     return <div className="p-6 text-center">Cargando cliente...</div>;
   }
 
-  // ⚠️ FUTURO:
-  // Aquí podrías validar roles (owner, employee, etc.)
-  // consultando una tabla profiles si decides escalar el sistema.
-
-  return <Outlet context={{ user, clientId }} />;
+  return <Outlet context={{ user, clientId, clientSlug }} />;
 }
