@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { optimizeImage } from "../../../utils/optimizeImage";
 import { DataTable } from "../../../shared/tables/DataTable";
 import { TablePagination } from "../../../shared/tables/TablePagination";
 import { InlineAlert } from "../../../shared/ui/InlineAlert";
@@ -28,6 +29,12 @@ export default function ProductsTable({ clientId }: Props) {
   const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({});
   const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({});
   const [uploadingIds, setUploadingIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    return () => {
+      Object.values(previewUrls).forEach((previewUrl) => URL.revokeObjectURL(previewUrl));
+    };
+  }, [previewUrls]);
 
   const maxPage = Math.max(0, Math.ceil(total / PAGE_SIZE) - 1);
 
@@ -181,6 +188,11 @@ export default function ProductsTable({ clientId }: Props) {
       .replace(/(^-|-$)/g, "");
 
   const handleFileChange = (itemId: string, file: File | null) => {
+    if (file && file.size > 10 * 1024 * 1024) {
+      notifyError("La imagen no puede superar los 10MB");
+      return;
+    }
+
     setSelectedFiles((prev) => ({ ...prev, [itemId]: file }));
 
     if (previewUrls[itemId]) {
@@ -213,20 +225,22 @@ export default function ProductsTable({ clientId }: Props) {
       return;
     }
 
-    const extension = getExtensionFromFile(file);
-    if (!extension) {
-      notifyError("No se pudo detectar la extensión del archivo");
-      return;
-    }
-
-    const fileName = `${slug}.${extension}`;
-    const filePath = `new-images/${fileName}`;
-
     setUploadingIds((prev) => [...prev, item.id]);
     try {
+      const optimizedFile = await optimizeImage(file);
+
+      const extension = getExtensionFromFile(optimizedFile) || getExtensionFromFile(file);
+      if (!extension) {
+        notifyError("No se pudo detectar la extensión del archivo");
+        return;
+      }
+
+      const fileName = `${slug}.${extension}`;
+      const filePath = `new-images/${fileName}`;
+
       const { error: uploadError } = await supabase.storage
         .from("toma-images")
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, optimizedFile, { upsert: true });
 
       if (uploadError) throw uploadError;
 
@@ -337,7 +351,7 @@ export default function ProductsTable({ clientId }: Props) {
                     </button>
                   </div>
                   {previewUrls[item.id] && (
-                    <img src={previewUrls[item.id]} alt="Vista previa" className="h-12 w-12 rounded object-cover border border-zinc-200" />
+                    <img src={previewUrls[item.id]} alt="Vista previa" className="max-w-[200px] rounded object-cover border border-zinc-200" />
                   )}
                 </div>
               </td>

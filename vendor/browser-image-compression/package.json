@@ -1,0 +1,7 @@
+{
+  "name": "browser-image-compression",
+  "version": "2.0.2",
+  "type": "module",
+  "main": "index.js",
+  "types": "index.d.ts"
+}
