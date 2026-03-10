@@ -18,6 +18,7 @@ export const ShopItemCard = ({ item, showAddButton = true }: Props) => {
   const { addToCart } = useCart();
   const [qty, setQty] = useState(1);
   const [imageError, setImageError] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   const increase = () => {
     setQty((q) => (item.stock ? Math.min(item.stock, q + 1) : q + 1));
@@ -44,11 +45,14 @@ export const ShopItemCard = ({ item, showAddButton = true }: Props) => {
             src={item.image}
             alt={item.name}
             loading="lazy"
+            onLoad={() => setLoaded(true)}
             onError={(e) => {
               e.currentTarget.style.display = "none";
               setImageError(true);
             }}
-            className="w-full h-full object-cover"
+            className={`w-full h-full object-cover transition-opacity duration-300 ${
+              loaded ? "opacity-100" : "opacity-0"
+            }`}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
