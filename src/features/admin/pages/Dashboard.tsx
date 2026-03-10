@@ -1,4 +1,4 @@
-import { NavLink, useOutletContext, useSearchParams } from "react-router-dom";
+import { NavLink, useNavigate, useOutletContext, useSearchParams } from "react-router-dom";
 import CategoriesTable from "../components/CategoriesTable";
 import ProductsTable from "../components/ProductsTable";
 import { signOut } from "../../../shared/auth/session";
@@ -14,15 +14,29 @@ const tabs = [
 export default function AdminDashboard() {
   const { clientId, clientSlug } = useOutletContext<ProtectedRouteContext>();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const activeTab =
     searchParams.get("tab") === "categories" ? "categories" : "products";
 
   const themeClass = themes.dark;
 
+  const handleSignOut = async () => {
+    try {
+      const { error } = await signOut();
+      if (error) {
+        console.error("Error signing out", error);
+      }
+    } catch (signOutError) {
+      console.error("Unexpected sign out error", signOutError);
+    } finally {
+      navigate(`/shop/${clientSlug}`, { replace: true });
+    }
+  };
+
   return (
     <div className={`menu-theme ${themeClass} min-h-screen`}>
-      <AdminNavbar clientSlug={clientSlug} variant="dashboard" onSignOut={signOut} />
+      <AdminNavbar clientSlug={clientSlug} variant="dashboard" onSignOut={handleSignOut} />
 
       <div className="w-full max-w-6xl mx-auto px-4 py-8 flex flex-col gap-6">
         <h1 className="text-xl font-semibold">Dashboard</h1>

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { DataTable } from "../../../shared/tables/DataTable";
 import { TablePagination } from "../../../shared/tables/TablePagination";
 import { createCategory, deleteCategory, getCategories, updateCategory } from "../../../modules/categories/queries";
+import { InlineAlert } from "../../../shared/ui/InlineAlert";
 import type { CategoryEntity } from "../../../modules/categories/types";
 
 type Props = { clientId: string };
@@ -16,14 +17,19 @@ export default function CategoriesTable({ clientId }: Props) {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const { rows } = await getCategories(clientId, { from: 0, to: 9999 });
 
-      setItems(rows);
+      setItems(rows ?? []);
       setEdited({});
+    } catch (loadError) {
+      console.error("Error loading categories", loadError);
+      setItems([]);
+      setError("Error al cargar los datos");
     } finally {
       setLoading(false);
     }
@@ -34,8 +40,15 @@ export default function CategoriesTable({ clientId }: Props) {
   }, [load]);
 
   const notify = (text: string) => {
+    setError(null);
     setMessage(text);
     setTimeout(() => setMessage(null), 2000);
+  };
+
+  const notifyError = (text: string) => {
+    setMessage(null);
+    setError(text);
+    setTimeout(() => setError(null), 3000);
   };
 
   const handleChange = (id: string, value: string) => {
@@ -62,6 +75,9 @@ export default function CategoriesTable({ clientId }: Props) {
 
       notify("Cambios guardados");
       load();
+    } catch (saveError) {
+      console.error("Error saving categories", saveError);
+      notifyError("Error al cargar los datos");
     } finally {
       setSaving(false);
     }
@@ -92,8 +108,9 @@ export default function CategoriesTable({ clientId }: Props) {
       await deleteCategory(id);
       notify("Categoría eliminada");
       load();
-    } catch {
-      notify("No se pudo eliminar");
+    } catch (deleteError) {
+      console.error("Error deleting category", deleteError);
+      notifyError("Error al cargar los datos");
     }
   };
 
@@ -150,7 +167,8 @@ export default function CategoriesTable({ clientId }: Props) {
         + Agregar categoría
       </button>
 
-      {message && <div className="text-sm text-emerald-600">{message}</div>}
+      {message && <InlineAlert tone="success" message={message} />}
+      {error && <InlineAlert tone="error" message={error} />}
       {hasErrors && <div className="text-sm text-red-500">Todas las categorías deben tener nombre</div>}
       <p className="text-sm text-zinc-500">Mostrando {filteredItems.length} de {items.length} categorías</p>
       {loading && (

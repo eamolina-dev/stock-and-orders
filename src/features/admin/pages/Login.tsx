@@ -11,6 +11,8 @@ import { ArrowLeft } from "lucide-react";
 import { themes } from "../../../theme/themes";
 import { getSession, signInWithPassword } from "../../../shared/auth/session";
 import type { User } from "@supabase/supabase-js";
+import { resolveClientBySlug } from "../../../modules/clients/resolution";
+import { ClientNotFound } from "../../../shared/pages/ClientNotFound";
 
 type LocationState = {
   from?: string;
@@ -22,6 +24,7 @@ export default function AdminLogin() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState<User | null | undefined>(undefined);
+  const [clientExists, setClientExists] = useState<boolean | undefined>(undefined);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -34,36 +37,60 @@ export default function AdminLogin() {
     let isMounted = true;
 
     const syncSession = async () => {
-      const session = await getSession();
-      if (!isMounted) return;
-      setUser(session?.user ?? null);
+      try {
+        const [session, client] = await Promise.all([
+          getSession(),
+          resolveClientBySlug(clientSlug),
+        ]);
+
+        if (!isMounted) return;
+        setUser(session?.user ?? null);
+        setClientExists(Boolean(client));
+      } catch (sessionError) {
+        console.error("Error loading login context", sessionError);
+        if (!isMounted) return;
+        setUser(null);
+        setClientExists(false);
+        setError("Error al cargar los datos");
+      }
     };
 
-    syncSession();
+    void syncSession();
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [clientSlug]);
 
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
     setIsSubmitting(true);
 
-    const { error: signInError } = await signInWithPassword(email, password);
+    try {
+      const { error: signInError } = await signInWithPassword(email, password);
 
-    if (signInError) {
-      setError("Usuario o contraseña incorrectos.");
+      if (signInError) {
+        console.error("Login error", signInError);
+        setError("Usuario o contraseña incorrectos.");
+        return;
+      }
+
+      navigate(from || `/${clientSlug}/admin/dashboard`, { replace: true });
+    } catch (signInError) {
+      console.error("Unexpected login error", signInError);
+      setError("Error al cargar los datos");
+    } finally {
       setIsSubmitting(false);
-      return;
     }
-
-    navigate(from || `/${clientSlug}/admin/dashboard`, { replace: true });
   };
 
-  if (!clientSlug || user === undefined) {
+  if (!clientSlug || user === undefined || clientExists === undefined) {
     return <div className="p-6 text-center">Cargando...</div>;
+  }
+
+  if (!clientExists) {
+    return <ClientNotFound clientSlug={clientSlug} />;
   }
 
   if (user) {

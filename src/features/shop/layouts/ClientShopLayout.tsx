@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Outlet, useParams } from "react-router-dom";
 import { resolveClientBySlug } from "../../../modules/clients/resolution";
 import type { Client } from "../../../modules/clients/types";
+import { ClientNotFound } from "../../../shared/pages/ClientNotFound";
 
 export type ClientShopLayoutContext = {
   client: Client;
@@ -12,19 +13,30 @@ export function ClientShopLayout() {
   const { clientSlug } = useParams<{ clientSlug: string }>();
   const [client, setClient] = useState<Client | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
     const loadClient = async () => {
       setLoading(true);
-      const resolvedClient = await resolveClientBySlug(clientSlug);
+      setError(null);
 
-      console.log(resolvedClient);
-      if (!isMounted) return;
+      try {
+        const resolvedClient = await resolveClientBySlug(clientSlug);
 
-      setClient(resolvedClient);
-      setLoading(false);
+        if (!isMounted) return;
+        setClient(resolvedClient);
+      } catch (clientError) {
+        console.error("Error resolving client", clientError);
+        if (!isMounted) return;
+        setClient(null);
+        setError("Error al cargar los datos");
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
     };
 
     loadClient();
@@ -38,8 +50,12 @@ export function ClientShopLayout() {
     return <div className="p-6 text-center">Cargando cliente...</div>;
   }
 
+  if (error) {
+    return <div className="p-6 text-center text-red-600">{error}</div>;
+  }
+
   if (!client || !clientSlug) {
-    return <div className="p-6 text-center">Client not found</div>;
+    return <ClientNotFound clientSlug={clientSlug} />;
   }
 
   return <Outlet context={{ client, clientSlug }} />;

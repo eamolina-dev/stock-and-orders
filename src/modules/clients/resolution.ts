@@ -3,13 +3,18 @@ import { getClientByOwner, getClientBySlug } from "./queries";
 import type { Client } from "./types";
 
 export async function resolveClientIdFromSession(): Promise<string | null> {
-  const session = await getSession();
-  const ownerUserId = session?.user?.id;
+  try {
+    const session = await getSession();
+    const ownerUserId = session?.user?.id;
 
-  if (!ownerUserId) return null;
+    if (!ownerUserId) return null;
 
-  const client = await getClientByOwner(ownerUserId);
-  return client?.id ?? null;
+    const client = await getClientByOwner(ownerUserId);
+    return client?.id ?? null;
+  } catch (error) {
+    console.error("Error resolving client id from session", error);
+    return null;
+  }
 }
 
 export async function resolveClientBySlug(

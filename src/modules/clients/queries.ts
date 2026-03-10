@@ -8,7 +8,10 @@ export async function getClientByOwner(userId: string): Promise<Client | null> {
     .eq("owner_user_id", userId)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) {
+    console.error("Supabase query error", error);
+    throw error;
+  }
 
   return data;
 }
@@ -20,7 +23,10 @@ export async function getClientByName(name: string): Promise<Client | null> {
     .eq("name", name)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) {
+    console.error("Supabase query error", error);
+    throw error;
+  }
 
   return data;
 }
@@ -32,7 +38,10 @@ export async function getClientBySlug(slug: string): Promise<Client | null> {
     .eq("slug", slug)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) {
+    console.error("Supabase query error", error);
+    throw error;
+  }
 
   return data;
 }

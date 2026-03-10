@@ -34,6 +34,7 @@ export default function ShopHome({ adminMode = false }: HomeProps) {
   const [searching, setSearching] = useState(false);
   const [menu, setMenu] = useState<ShopCategoryType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isAdminSession, setIsAdminSession] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null
@@ -45,30 +46,39 @@ export default function ShopHome({ adminMode = false }: HomeProps) {
 
     const loadPublicMenu = async () => {
       setLoading(true);
+      setError(null);
       try {
         const parsedMenu = await getPublicMenu(client.id);
 
         if (!mounted) return;
         setMenu(parsedMenu);
 
-        const defaultCategory = parsedMenu.find(
+        const safeMenu = parsedMenu ?? [];
+
+        const defaultCategory = safeMenu.find(
           (category) =>
             normalizeText(category.title) === normalizeText("Cervezas")
         );
-        setSelectedCategoryId(defaultCategory?.id ?? parsedMenu[0]?.id ?? null);
-      } catch {
+        setSelectedCategoryId(defaultCategory?.id ?? safeMenu[0]?.id ?? null);
+      } catch (menuError) {
+        console.error("Error loading public menu", menuError);
         if (!mounted) return;
         setMenu([]);
         setSelectedCategoryId(null);
+        setError("Error al cargar los datos");
       } finally {
         if (mounted) setLoading(false);
       }
     };
 
     const syncSession = async () => {
-      const session = await getSession();
-      if (!mounted) return;
-      setIsAdminSession(isConfiguredAdmin(session?.user?.email));
+      try {
+        const session = await getSession();
+        if (!mounted) return;
+        setIsAdminSession(isConfiguredAdmin(session?.user?.email));
+      } catch (sessionError) {
+        console.error("Error syncing auth session", sessionError);
+      }
     };
 
     loadPublicMenu();
@@ -115,7 +125,7 @@ export default function ShopHome({ adminMode = false }: HomeProps) {
 
         <div className="sticky top-0 z-30 bg-[var(--bg)]/80 backdrop-blur border-b">
           <div className="shop-category-scroll flex gap-2 overflow-x-auto px-4 py-3 max-w-2xl mx-auto">
-            {menu.map((category) => (
+            {(menu ?? []).map((category) => (
               <button
                 key={category.id}
                 type="button"
@@ -159,13 +169,17 @@ export default function ShopHome({ adminMode = false }: HomeProps) {
           )}
 
           {!loading &&
-            filteredMenu.map((category) => (
+            (filteredMenu ?? []).map((category) => (
               <ShopCategory
                 key={category.id}
                 category={category}
                 showAddButton
               />
             ))}
+
+          {error && (
+            <div className="text-center py-4 text-sm text-red-500">{error}</div>
+          )}
 
           {!loading && filteredMenu.length === 0 && (
             <div className="text-center py-10 text-sm text-slate-400">

@@ -53,6 +53,10 @@ export default function ProductsTable({ clientId }: Props) {
           }))
         );
         setEdited({});
+      } catch (loadError) {
+        console.error("Error loading products", loadError);
+        setItems([]);
+        notifyError("Error al cargar los datos");
       } finally {
         setLoadingItems(false);
       }
@@ -65,10 +69,30 @@ export default function ProductsTable({ clientId }: Props) {
   }, [load]);
 
   useEffect(() => {
-    setLoadingCategories(true);
-    getCategories(clientId, { from: 0, to: 999 })
-      .then((res) => setCategories(res.rows))
-      .finally(() => setLoadingCategories(false));
+    let active = true;
+
+    const loadCategories = async () => {
+      setLoadingCategories(true);
+
+      try {
+        const res = await getCategories(clientId, { from: 0, to: 999 });
+        if (!active) return;
+        setCategories(res.rows ?? []);
+      } catch (categoriesError) {
+        console.error("Error loading categories", categoriesError);
+        if (!active) return;
+        setCategories([]);
+        notifyError("Error al cargar los datos");
+      } finally {
+        if (active) setLoadingCategories(false);
+      }
+    };
+
+    void loadCategories();
+
+    return () => {
+      active = false;
+    };
   }, [clientId]);
 
   useEffect(() => {
@@ -153,8 +177,9 @@ export default function ProductsTable({ clientId }: Props) {
       setHighlightIds(affectedIds);
       setTimeout(() => setHighlightIds([]), 1500);
       load();
-    } catch {
-      notifyError("No se pudieron guardar los cambios");
+    } catch (saveError) {
+      console.error("Error saving products", saveError);
+      notifyError("Error al cargar los datos");
     } finally {
       setSaving(false);
     }
@@ -191,8 +216,9 @@ export default function ProductsTable({ clientId }: Props) {
       await deleteItem(id);
       setItems((prev) => prev.filter((item) => item.id !== id));
       notifySuccess("Producto eliminado");
-    } catch {
-      notifyError("No se pudo eliminar el producto");
+    } catch (deleteError) {
+      console.error("Error deleting product", deleteError);
+      notifyError("Error al cargar los datos");
     }
   };
 
@@ -278,12 +304,13 @@ export default function ProductsTable({ clientId }: Props) {
       });
       setImageAvailability((prev) => ({ ...prev, [item.id]: true }));
       notifySuccess("Imagen subida y producto actualizado");
-    } catch {
+    } catch (uploadError) {
+      console.error("Error uploading product image", uploadError);
       setUploadErrors((prev) => ({
         ...prev,
-        [item.id]: "No se pudo subir la imagen. Intentá nuevamente.",
+        [item.id]: "Error al subir la imagen",
       }));
-      notifyError("No se pudo subir la imagen");
+      notifyError("Error al subir la imagen");
     } finally {
       setUploadingIds((prev) => prev.filter((id) => id !== item.id));
     }
@@ -301,7 +328,8 @@ export default function ProductsTable({ clientId }: Props) {
           try {
             const response = await fetch(imageUrl, { method: "HEAD" });
             return [item.id, response.ok] as const;
-          } catch {
+          } catch (imageError) {
+            console.error("Error validating image url", imageError);
             return [item.id, false] as const;
           }
         })

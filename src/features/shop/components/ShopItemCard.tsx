@@ -40,7 +40,7 @@ export const ShopItemCard = ({ item, showAddButton = true }: Props) => {
   return (
     <div className="bg-white rounded-2xl border shadow-sm overflow-hidden text-slate-900">
       <div className="aspect-square bg-gray-100">
-        {!imageError ? (
+        {item.image && !imageError ? (
           <img
             src={item.image}
             alt={item.name}
@@ -56,7 +56,7 @@ export const ShopItemCard = ({ item, showAddButton = true }: Props) => {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-            Imagen no disponible
+            Sin imagen
           </div>
         )}
       </div>

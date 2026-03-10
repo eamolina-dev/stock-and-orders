@@ -16,24 +16,36 @@ export async function getItems(clientId: string, { from, to }: RangeInput): Prom
     .range(from, to)
     .order("name");
 
-  if (error) throw error;
+  if (error) {
+    console.error("Supabase query error", error);
+    throw error;
+  }
 
   return { rows: data ?? [], count: count ?? 0 };
 }
 
 export async function createItem(input: ItemInsert): Promise<void> {
   const { error } = await supabase.from("products").insert(input);
-  if (error) throw error;
+  if (error) {
+    console.error("Supabase query error", error);
+    throw error;
+  }
 }
 
 export async function updateItem(id: string, changes: ItemUpdate): Promise<void> {
   const { error } = await supabase.from("products").update(changes).eq("id", id);
-  if (error) throw error;
+  if (error) {
+    console.error("Supabase query error", error);
+    throw error;
+  }
 }
 
 export async function deleteItem(id: string): Promise<void> {
   const { error } = await supabase.from("products").delete().eq("id", id);
-  if (error) throw error;
+  if (error) {
+    console.error("Supabase query error", error);
+    throw error;
+  }
 }
 
 export async function getPublicMenu(clientId: string): Promise<ShopCategory[]> {
@@ -48,6 +60,7 @@ export async function getPublicMenu(clientId: string): Promise<ShopCategory[]> {
     ]);
 
   if (categoriesError || productsError) {
+    console.error("Supabase query error", categoriesError ?? productsError);
     throw categoriesError ?? productsError;
   }
 
