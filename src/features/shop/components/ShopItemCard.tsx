@@ -17,6 +17,7 @@ type Props = {
 export const ShopItemCard = ({ item, showAddButton = true }: Props) => {
   const { addToCart } = useCart();
   const [qty, setQty] = useState(1);
+  const [imageError, setImageError] = useState(false);
 
   const increase = () => {
     setQty((q) => (item.stock ? Math.min(item.stock, q + 1) : q + 1));
@@ -38,16 +39,20 @@ export const ShopItemCard = ({ item, showAddButton = true }: Props) => {
   return (
     <div className="bg-white rounded-2xl border shadow-sm overflow-hidden text-slate-900">
       <div className="aspect-square bg-gray-100">
-        {item.image ? (
+        {!imageError ? (
           <img
             src={item.image}
             alt={item.name}
             loading="lazy"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+              setImageError(true);
+            }}
             className="w-full h-full object-cover"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-            Sin imagen
+            Imagen no disponible
           </div>
         )}
       </div>

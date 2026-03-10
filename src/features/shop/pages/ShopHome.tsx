@@ -30,7 +30,9 @@ export default function ShopHome() {
   const [menu, setMenu] = useState<ShopCategoryType[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdminSession, setIsAdminSession] = useState(false);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    null
+  );
   const { client, clientSlug } = useOutletContext<ClientShopLayoutContext>();
 
   useEffect(() => {
@@ -45,7 +47,8 @@ export default function ShopHome() {
         setMenu(parsedMenu);
 
         const defaultCategory = parsedMenu.find(
-          (category) => normalizeText(category.title) === normalizeText("Cervezas")
+          (category) =>
+            normalizeText(category.title) === normalizeText("Cervezas")
         );
         setSelectedCategoryId(defaultCategory?.id ?? parsedMenu[0]?.id ?? null);
       } catch {
@@ -112,7 +115,7 @@ export default function ShopHome() {
                 className={`px-4 py-2 rounded-full border text-sm whitespace-nowrap transition ${
                   selectedCategoryId === category.id
                     ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-white/80 hover:bg-white"
+                    : "bg-white/40 hover:bg-black"
                 }`}
                 onClick={() => setSelectedCategoryId(category.id)}
               >
