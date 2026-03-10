@@ -9,12 +9,12 @@ type FooterProps = {
 };
 
 export const Footer = ({
-  title = "Moli Devs: desarrollo y diseño de productos tecnológicos.",
+  title = "Moli Devs: productos y servicios tecnológicos.",
   subtitle = "¿Te gustaría tener tu propia tienda online?",
   email = "eamolina.dev@gmail.com",
-  whatsappUrl = "https://wa.me/5492610000000",
-  websiteUrl = "https://moli-devs.com",
-  ctaText = "Contactame, escribime o hablemos",
+  whatsappUrl = "https://wa.me/5493584382061",
+  // websiteUrl = "https://moli-devs.com",
+  ctaText = "Hace tu consulta ...",
   className = "",
 }: FooterProps) => {
   return (
@@ -33,7 +33,7 @@ export const Footer = ({
             href={`mailto:${email}`}
             className="rounded-md border border-white/25 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition hover:bg-white hover:text-zinc-900"
           >
-            Correo
+            Email
           </a>
           <a
             href={whatsappUrl}
@@ -43,14 +43,14 @@ export const Footer = ({
           >
             WhatsApp
           </a>
-          <a
+          {/* <a
             href={websiteUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-md border border-white/25 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition hover:bg-white hover:text-zinc-900"
           >
             Web
-          </a>
+          </a> */}
         </div>
       </div>
     </footer>
