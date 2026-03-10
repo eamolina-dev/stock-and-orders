@@ -436,8 +436,8 @@ export default function ProductsTable({ clientId }: Props) {
                 highlightIds.includes(item.id)
                   ? "bg-emerald-100"
                   : i % 2 === 0
-                  ? "bg-white"
-                  : "bg-zinc-50"
+                  ? "bg-zinc-50"
+                  : "bg-zinc-100"
               } hover:bg-emerald-50 transition-colors ${
                 isEdited ? "ring-1 ring-amber-400" : ""
               }`}

@@ -1,8 +1,9 @@
 import { NavLink, useOutletContext, useSearchParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
 import CategoriesTable from "../components/CategoriesTable";
 import ProductsTable from "../components/ProductsTable";
 import { signOut } from "../../../shared/auth/session";
+import { themes } from "../../../theme/themes";
+import { AdminNavbar } from "../../../shared/layout/AdminNavbar";
 import type { ProtectedRouteContext } from "../components/ProtectedRoute";
 
 const tabs = [
@@ -17,37 +18,14 @@ export default function AdminDashboard() {
   const activeTab =
     searchParams.get("tab") === "categories" ? "categories" : "products";
 
+  const themeClass = themes.dark;
+
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+    <div className={`menu-theme ${themeClass} min-h-screen`}>
+      <AdminNavbar clientSlug={clientSlug} variant="dashboard" onSignOut={signOut} />
+
       <div className="w-full max-w-6xl mx-auto px-4 py-8 flex flex-col gap-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <NavLink
-            to={`/${clientSlug}/admin/shop`}
-            className="inline-flex items-center gap-2 rounded-md border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition hover:bg-zinc-800"
-          >
-            <ArrowLeft size={16} />
-            Volver al menú
-          </NavLink>
-
-          <h1 className="text-xl font-semibold">Dashboard</h1>
-
-          <div className="flex items-center gap-2">
-            <NavLink
-              to={`/${clientSlug}/admin/shop`}
-              className="rounded-md border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition hover:bg-zinc-800"
-            >
-              Ver tienda
-            </NavLink>
-
-            <button
-              type="button"
-              onClick={signOut}
-              className="rounded-md border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition hover:bg-zinc-800"
-            >
-              Cerrar sesión
-            </button>
-          </div>
-        </div>
+        <h1 className="text-xl font-semibold">Dashboard</h1>
 
         <div className="flex gap-2">
           {tabs.map((tab) => (
@@ -61,7 +39,7 @@ export default function AdminDashboard() {
               className={`px-3 py-1.5 text-sm rounded-md transition ${
                 activeTab === tab.value
                   ? "bg-white text-zinc-900"
-                  : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                  : "bg-zinc-800 text-zinc-200 hover:bg-zinc-700"
               }`}
             >
               {tab.label}

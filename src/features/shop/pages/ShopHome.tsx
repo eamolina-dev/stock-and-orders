@@ -3,6 +3,7 @@ import { Link, useOutletContext } from "react-router-dom";
 import { Shield } from "lucide-react";
 import { Header } from "../../../shared/layout/Header";
 import { Footer } from "../../../shared/layout/Footer";
+import { AdminNavbar } from "../../../shared/layout/AdminNavbar";
 import { themes } from "../../../theme/themes";
 import { CartButton } from "../components/CartButton";
 import { CartPanel } from "../components/CartPanel";
@@ -103,17 +104,7 @@ export default function ShopHome({ adminMode = false }: HomeProps) {
   return (
     <CartProvider>
       <div className={`menu-theme ${themeClass} min-h-screen relative`}>
-        {adminMode && (
-          <div className="sticky top-0 z-50 bg-black text-white text-sm px-4 py-3 flex items-center justify-between border-b border-white/20">
-            <span className="font-semibold">Modo administrador</span>
-            <Link
-              to={`/${clientSlug}/admin/dashboard`}
-              className="rounded-md border border-white/40 px-3 py-1.5 font-semibold hover:bg-white hover:text-black"
-            >
-              Ir al panel
-            </Link>
-          </div>
-        )}
+        {adminMode && <AdminNavbar clientSlug={clientSlug} variant="shop" />}
 
         <Header
           name={client.name ?? ""}

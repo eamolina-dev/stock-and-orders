@@ -174,7 +174,7 @@ export default function CategoriesTable({ clientId }: Props) {
               return (
                 <tr
                   key={item.id}
-                  className={`${i % 2 === 0 ? "bg-white" : "bg-zinc-50"} hover:bg-emerald-50 transition-colors ${isEdited ? "ring-1 ring-amber-400" : ""}`}
+                  className={`${i % 2 === 0 ? "bg-zinc-50" : "bg-zinc-100"} hover:bg-emerald-50 transition-colors ${isEdited ? "ring-1 ring-amber-400" : ""}`}
                 >
                   <td className="px-3 py-2">
                     <input value={item.name || ""} onChange={(e) => handleChange(item.id, e.target.value)} className="w-full bg-transparent outline-none px-2 py-1 rounded" />
