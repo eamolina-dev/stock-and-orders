@@ -22,7 +22,7 @@ export default function AdminDashboard() {
       <div className="w-full max-w-6xl mx-auto px-4 py-8 flex flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <NavLink
-            to={`/shop/${clientSlug}`}
+            to={`/${clientSlug}/admin/shop`}
             className="inline-flex items-center gap-2 rounded-md border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition hover:bg-zinc-800"
           >
             <ArrowLeft size={16} />
