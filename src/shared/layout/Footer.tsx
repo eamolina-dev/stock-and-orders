@@ -1,58 +1,55 @@
 type FooterProps = {
-  brandText?: string;
-  description?: string;
-  contactLabel?: string;
-  contactValue?: string;
-  contactHref?: string;
-  ctaLabel?: string;
-  ctaHref?: string;
+  title?: string;
+  subtitle?: string;
+  email?: string;
+  whatsappUrl?: string;
+  websiteUrl?: string;
+  ctaText?: string;
   className?: string;
-  tone?: "default" | "highlight";
-};
-
-const toneStyles: Record<NonNullable<FooterProps["tone"]>, string> = {
-  default:
-    "bg-white/5 border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.22)] text-white",
-  highlight:
-    "bg-amber-50/10 border-amber-300/30 shadow-[0_12px_36px_rgba(0,0,0,0.28)] text-white",
 };
 
 export const Footer = ({
-  brandText = "Menú digital desarrollado por Agustín Molina",
-  description = "Diseño, desarrollo e implementación de sistemas para negocios reales.",
-  contactLabel = "Contacto",
-  contactValue = "eamolina.dev@gmail.com",
-  contactHref = "mailto:eamolina.dev@gmail.com",
-  ctaLabel = "Hablemos",
-  ctaHref = "mailto:eamolina.dev@gmail.com",
+  title = "Moli Devs: desarrollo y diseño de productos tecnológicos.",
+  subtitle = "¿Te gustaría tener tu propia tienda online?",
+  email = "eamolina.dev@gmail.com",
+  whatsappUrl = "https://wa.me/5492610000000",
+  websiteUrl = "https://moli-devs.com",
+  ctaText = "Contactame, escribime o hablemos",
   className = "",
-  tone = "default",
 }: FooterProps) => {
   return (
-    <footer className={`px-4 pb-10 pt-4 ${className}`}>
-      <div
-        className={`mx-auto max-w-3xl rounded-2xl border p-5 md:p-6 ${toneStyles[tone]}`}
-      >
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-1.5">
-            <p className="text-xs uppercase tracking-[0.2em] text-white/65">
-              {contactLabel}
-            </p>
-            <p className="text-sm font-semibold md:text-base">{brandText}</p>
-            <p className="text-sm text-white/75">{description}</p>
-            <a
-              href={contactHref}
-              className="inline-flex text-sm font-semibold text-amber-300 hover:text-amber-200"
-            >
-              {contactValue}
-            </a>
-          </div>
+    <footer
+      className={`w-full border-t border-white/10 bg-black/25 px-4 py-8 text-sm text-white/85 ${className}`}
+    >
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="space-y-1">
+          <p className="font-semibold text-white">{title}</p>
+          <p className="text-white/70">{subtitle}</p>
+          <p className="text-white/80">{ctaText}</p>
+        </div>
 
+        <div className="flex flex-wrap items-center gap-2 md:justify-end">
           <a
-            href={ctaHref}
-            className="inline-flex items-center justify-center rounded-lg border border-amber-300/60 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:bg-amber-200 hover:text-zinc-900"
+            href={`mailto:${email}`}
+            className="rounded-md border border-white/25 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition hover:bg-white hover:text-zinc-900"
           >
-            {ctaLabel}
+            Correo
+          </a>
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-md border border-white/25 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition hover:bg-white hover:text-zinc-900"
+          >
+            WhatsApp
+          </a>
+          <a
+            href={websiteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-md border border-white/25 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition hover:bg-white hover:text-zinc-900"
+          >
+            Web
           </a>
         </div>
       </div>
