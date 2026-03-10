@@ -173,7 +173,7 @@ export default function ShopHome() {
           <CartButton />
         </div>
 
-        <CartPanel />
+        <CartPanel phoneNumber={client.phone_number} />
       </div>
     </CartProvider>
   );

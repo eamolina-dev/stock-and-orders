@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useCart } from "./CartContext";
 
-const WHATSAPP_PHONE = "5493584382061";
+type Props = {
+  phoneNumber: string | null;
+};
 
-export const CartPanel = () => {
+export const CartPanel = ({ phoneNumber }: Props) => {
   const { cart, totalPrice, removeFromCart, increaseQty, clearCart } =
     useCart();
 
@@ -24,7 +26,7 @@ export const CartPanel = () => {
       .join("\n")}\n\nTotal: $${totalPrice}`
   );
 
-  const url = `https://wa.me/${WHATSAPP_PHONE}?text=${message}`;
+  const url = `https://wa.me/${phoneNumber}?text=${message}`;
 
   return (
     <div

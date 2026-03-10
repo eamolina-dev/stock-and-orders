@@ -14,42 +14,21 @@ export type Database = {
   }
   public: {
     Tables: {
-      clients: {
-        Row: {
-          created_at: string
-          id: string
-          name: string | null
-          owner_user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name?: string | null
-          owner_user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string | null
-          owner_user_id?: string
-        }
-        Relationships: []
-      }
       categories: {
         Row: {
-          client_id: string
+          client_id: string | null
           created_at: string
           id: string
           name: string | null
         }
         Insert: {
-          client_id: string
+          client_id?: string | null
           created_at?: string
           id?: string
           name?: string | null
         }
         Update: {
-          client_id?: string
+          client_id?: string | null
           created_at?: string
           id?: string
           name?: string | null
@@ -64,10 +43,43 @@ export type Database = {
           },
         ]
       }
+      clients: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          location_url: string | null
+          name: string | null
+          owner_user_id: string
+          phone_number: string | null
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          location_url?: string | null
+          name?: string | null
+          owner_user_id?: string
+          phone_number?: string | null
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          location_url?: string | null
+          name?: string | null
+          owner_user_id?: string
+          phone_number?: string | null
+          slug?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           category_id: string | null
-          client_id: string
+          client_id: string | null
           created_at: string
           id: string
           image_url: string | null
@@ -76,7 +88,7 @@ export type Database = {
         }
         Insert: {
           category_id?: string | null
-          client_id: string
+          client_id?: string | null
           created_at?: string
           id?: string
           image_url?: string | null
@@ -85,7 +97,7 @@ export type Database = {
         }
         Update: {
           category_id?: string | null
-          client_id?: string
+          client_id?: string | null
           created_at?: string
           id?: string
           image_url?: string | null
@@ -94,17 +106,17 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "products_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "products_category_id_fkey"
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]
