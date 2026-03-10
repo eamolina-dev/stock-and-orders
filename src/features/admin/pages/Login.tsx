@@ -63,7 +63,7 @@ export default function AdminLogin() {
             <div>
               <label className="mb-1 block text-sm font-medium">Email</label>
               <input
-                className="w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-zinc-500"
+                className="w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-black text-sm outline-none transition focus:border-zinc-500"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -76,7 +76,7 @@ export default function AdminLogin() {
                 Contraseña
               </label>
               <input
-                className="w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-zinc-500"
+                className="w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-black text-sm outline-none transition focus:border-zinc-500"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
