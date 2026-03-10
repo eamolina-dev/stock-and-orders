@@ -32,6 +32,9 @@ export default function ProductsTable({ clientId }: Props) {
   const [saving, setSaving] = useState(false);
   const [page, setPage] = useState(0);
   const [uploadingIds, setUploadingIds] = useState<string[]>([]);
+  const [loadingItems, setLoadingItems] = useState(true);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [uploadErrors, setUploadErrors] = useState<Record<string, string>>({});
   const [imageAvailability, setImageAvailability] = useState<
     Record<string, boolean>
   >({});
@@ -40,14 +43,19 @@ export default function ProductsTable({ clientId }: Props) {
 
   const load = useCallback(
     async () => {
-      const { rows } = await getItems(clientId, { from: 0, to: 9999 });
-      setItems(
-        rows.map((item) => ({
-          ...item,
-          price: item.price === null ? "" : String(item.price),
-        }))
-      );
-      setEdited({});
+      setLoadingItems(true);
+      try {
+        const { rows } = await getItems(clientId, { from: 0, to: 9999 });
+        setItems(
+          rows.map((item) => ({
+            ...item,
+            price: item.price === null ? "" : String(item.price),
+          }))
+        );
+        setEdited({});
+      } finally {
+        setLoadingItems(false);
+      }
     },
     [clientId]
   );
@@ -57,9 +65,10 @@ export default function ProductsTable({ clientId }: Props) {
   }, [load]);
 
   useEffect(() => {
-    getCategories(clientId, { from: 0, to: 999 }).then((res) =>
-      setCategories(res.rows)
-    );
+    setLoadingCategories(true);
+    getCategories(clientId, { from: 0, to: 999 })
+      .then((res) => setCategories(res.rows))
+      .finally(() => setLoadingCategories(false));
   }, [clientId]);
 
   useEffect(() => {
@@ -166,7 +175,7 @@ export default function ProductsTable({ clientId }: Props) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("¿Eliminar producto?")) return;
+    if (!window.confirm("¿Seguro que querés eliminar este producto?")) return;
 
     try {
       if (id.startsWith("temp_")) {
@@ -228,6 +237,7 @@ export default function ProductsTable({ clientId }: Props) {
     }
 
     setUploadingIds((prev) => [...prev, item.id]);
+    setUploadErrors((prev) => ({ ...prev, [item.id]: "" }));
     try {
       const optimizedFile = await optimizeImage(file);
 
@@ -269,6 +279,10 @@ export default function ProductsTable({ clientId }: Props) {
       setImageAvailability((prev) => ({ ...prev, [item.id]: true }));
       notifySuccess("Imagen subida y producto actualizado");
     } catch {
+      setUploadErrors((prev) => ({
+        ...prev,
+        [item.id]: "No se pudo subir la imagen. Intentá nuevamente.",
+      }));
       notifyError("No se pudo subir la imagen");
     } finally {
       setUploadingIds((prev) => prev.filter((id) => id !== item.id));
@@ -336,16 +350,25 @@ export default function ProductsTable({ clientId }: Props) {
     <div className="p-4 flex flex-col gap-4 min-w-max">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
+          <label htmlFor="products-search" className="sr-only">
+            Buscar producto
+          </label>
           <input
+            id="products-search"
             placeholder="Buscar producto..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="px-3 py-2 text-sm rounded-md border border-zinc-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
+          <label htmlFor="products-category-filter" className="sr-only">
+            Filtrar por categoría
+          </label>
           <select
+            id="products-category-filter"
             value={categoryFilter ?? ""}
             onChange={(e) => setCategoryFilter(e.target.value || null)}
             className="px-3 py-2 text-sm rounded-md border border-zinc-300 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            disabled={loadingCategories}
           >
             <option value="">Todas las categorías</option>
             {categories.map((category) => (
@@ -364,7 +387,7 @@ export default function ProductsTable({ clientId }: Props) {
               : "bg-zinc-200 text-zinc-400 cursor-not-allowed"
           }`}
         >
-          Guardar cambios
+          Guardar
         </button>
       </div>
 
@@ -378,19 +401,30 @@ export default function ProductsTable({ clientId }: Props) {
       {message && <InlineAlert tone="success" message={message} />}
       {error && <InlineAlert tone="error" message={error} />}
 
-      <DataTable
-        minWidthClassName="min-w-full"
-        columns={
-          <>
-            <th className="text-left px-3 py-2">Nombre</th>
-            <th className="text-left px-3 py-2">Precio</th>
-            <th className="text-left px-3 py-2">Imagen</th>
-            <th className="text-left px-3 py-2">Categoría</th>
-            <th className="text-left px-3 py-2 w-20"></th>
-          </>
-        }
-      >
-        {paginatedItems.map((item, i) => {
+      <p className="text-sm text-zinc-500">
+        Mostrando {filteredItems.length} de {items.length} productos
+      </p>
+
+      {loadingItems && (
+        <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-6 text-center text-sm text-zinc-500">
+          Cargando productos...
+        </div>
+      )}
+
+      {!loadingItems && (
+        <DataTable
+          minWidthClassName="min-w-full"
+          columns={
+            <>
+              <th className="text-left px-3 py-2">Nombre</th>
+              <th className="text-left px-3 py-2">Precio</th>
+              <th className="text-left px-3 py-2">Imagen</th>
+              <th className="text-left px-3 py-2">Categoría</th>
+              <th className="text-left px-3 py-2 w-24">Acciones</th>
+            </>
+          }
+        >
+          {paginatedItems.map((item, i) => {
           const invalidPrice =
             item.price !== "" && parseNumber(item.price) === null;
           const isEdited = edited[item.id];
@@ -457,7 +491,7 @@ export default function ProductsTable({ clientId }: Props) {
                       className="px-2 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-500 disabled:bg-zinc-300 disabled:text-zinc-500"
                     >
                       {uploadingIds.includes(item.id)
-                        ? "Subiendo..."
+                        ? "Subiendo imagen..."
                         : "Subir imagen"}
                     </button>
 
@@ -472,6 +506,9 @@ export default function ProductsTable({ clientId }: Props) {
                       </a>
                     )}
                   </div>
+                  {uploadErrors[item.id] && (
+                    <p className="text-xs text-red-500">{uploadErrors[item.id]}</p>
+                  )}
                 </div>
               </td>
               <td className="px-3 py-2">
@@ -493,15 +530,25 @@ export default function ProductsTable({ clientId }: Props) {
               <td className="px-3 py-2">
                 <button
                   onClick={() => handleDelete(item.id)}
-                  className="text-red-500 hover:text-red-400"
+                  className="rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50"
                 >
-                  🗑
+                  Eliminar
                 </button>
               </td>
             </tr>
           );
-        })}
-      </DataTable>
+          })}
+          {!paginatedItems.length && (
+            <tr>
+              <td colSpan={5} className="px-3 py-10 text-center text-sm text-zinc-500">
+                {items.length === 0
+                  ? "No hay productos aún"
+                  : "No se encontraron productos"}
+              </td>
+            </tr>
+          )}
+        </DataTable>
+      )}
 
       <TablePagination page={page} maxPage={maxPage} onChange={setPage} />
     </div>

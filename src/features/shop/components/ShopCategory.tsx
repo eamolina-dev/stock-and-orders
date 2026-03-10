@@ -13,7 +13,7 @@ export const ShopCategory = ({ category, showAddButton }: Props) => {
         {category.title}
       </h2>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4">
         {category.items.map((item) => (
           <ShopItemCard
             key={item.id}

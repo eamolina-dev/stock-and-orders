@@ -104,11 +104,11 @@ export default function ShopHome({ adminMode = false }: HomeProps) {
     <CartProvider>
       <div className={`menu-theme ${themeClass} min-h-screen relative`}>
         {adminMode && (
-          <div className="bg-black text-white text-sm p-2 flex justify-between">
-            <span>Modo administrador</span>
+          <div className="sticky top-0 z-50 bg-black text-white text-sm px-4 py-3 flex items-center justify-between border-b border-white/20">
+            <span className="font-semibold">Modo administrador</span>
             <Link
               to={`/${clientSlug}/admin/dashboard`}
-              className="font-semibold hover:underline"
+              className="rounded-md border border-white/40 px-3 py-1.5 font-semibold hover:bg-white hover:text-black"
             >
               Ir al panel
             </Link>
@@ -128,7 +128,7 @@ export default function ShopHome({ adminMode = false }: HomeProps) {
               <button
                 key={category.id}
                 type="button"
-                className={`px-4 py-2 rounded-full border text-sm whitespace-nowrap transition ${
+                className={`px-4 py-2.5 rounded-full border text-sm whitespace-nowrap transition min-h-10 ${
                   selectedCategoryId === category.id
                     ? "bg-blue-600 text-white border-blue-600"
                     : "bg-white/40 hover:bg-black"
@@ -176,9 +176,9 @@ export default function ShopHome({ adminMode = false }: HomeProps) {
               />
             ))}
 
-          {!loading && filteredMenu.length === 0 && search.length > 0 && (
+          {!loading && filteredMenu.length === 0 && (
             <div className="text-center py-10 text-sm text-slate-400">
-              No encontramos productos
+              No se encontraron productos
             </div>
           )}
         </main>

@@ -14,13 +14,19 @@ export default function CategoriesTable({ clientId }: Props) {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const { rows } = await getCategories(clientId, { from: 0, to: 9999 });
+    setLoading(true);
+    try {
+      const { rows } = await getCategories(clientId, { from: 0, to: 9999 });
 
-    setItems(rows);
-    setEdited({});
+      setItems(rows);
+      setEdited({});
+    } finally {
+      setLoading(false);
+    }
   }, [clientId]);
 
   useEffect(() => {
@@ -70,7 +76,7 @@ export default function CategoriesTable({ clientId }: Props) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("¿Eliminar categoría?")) return;
+    if (!window.confirm("¿Seguro que querés eliminar esta categoría?")) return;
 
     try {
       if (id.startsWith("temp_")) {
@@ -122,6 +128,7 @@ export default function CategoriesTable({ clientId }: Props) {
     <div className="p-4 flex flex-col gap-4 min-w-[800px]">
       <div className="flex items-center justify-between gap-2">
         <input
+          aria-label="Buscar categoría"
           placeholder="Filtrar..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -135,7 +142,7 @@ export default function CategoriesTable({ clientId }: Props) {
             hasChanges && !hasErrors ? "bg-emerald-600 hover:bg-emerald-500 text-white" : "bg-zinc-200 text-zinc-400 cursor-not-allowed"
           }`}
         >
-          Guardar cambios
+          Guardar
         </button>
       </div>
 
@@ -145,14 +152,20 @@ export default function CategoriesTable({ clientId }: Props) {
 
       {message && <div className="text-sm text-emerald-600">{message}</div>}
       {hasErrors && <div className="text-sm text-red-500">Todas las categorías deben tener nombre</div>}
+      <p className="text-sm text-zinc-500">Mostrando {filteredItems.length} de {items.length} categorías</p>
+      {loading && (
+        <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-6 text-center text-sm text-zinc-500">
+          Cargando categorías...
+        </div>
+      )}
 
-      <div className="border border-zinc-200 rounded-lg bg-white">
+      {!loading && <div className="border border-zinc-200 rounded-lg bg-white">
         <div className="overflow-x-auto">
           <DataTable
             columns={
               <>
                 <th className="text-left px-3 py-2">Nombre</th>
-                <th className="px-3 py-2 w-20"></th>
+                <th className="px-3 py-2 w-24">Acciones</th>
               </>
             }
           >
@@ -168,16 +181,23 @@ export default function CategoriesTable({ clientId }: Props) {
                   </td>
 
                   <td className="px-3 py-2">
-                    <button onClick={() => handleDelete(item.id)} className="text-red-500 hover:text-red-400">
-                      🗑
+                    <button onClick={() => handleDelete(item.id)} className="rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50">
+                      Eliminar
                     </button>
                   </td>
                 </tr>
               );
             })}
+            {!paginatedItems.length && (
+              <tr>
+                <td colSpan={2} className="px-3 py-10 text-center text-sm text-zinc-500">
+                  {items.length === 0 ? "No hay categorías aún" : "No se encontraron categorías"}
+                </td>
+              </tr>
+            )}
           </DataTable>
         </div>
-      </div>
+      </div>}
 
       <TablePagination page={page} maxPage={maxPage} onChange={setPage} />
     </div>

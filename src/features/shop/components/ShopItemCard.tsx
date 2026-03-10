@@ -81,7 +81,8 @@ export const ShopItemCard = ({ item, showAddButton = true }: Props) => {
         <div className="flex items-center gap-2 pt-0.5">
           <button
             onClick={decrease}
-            className="w-6 h-6 rounded border text-xs active:scale-95"
+            aria-label="Disminuir cantidad"
+            className="w-8 h-8 rounded border text-sm active:scale-95"
           >
             –
           </button>
@@ -90,7 +91,8 @@ export const ShopItemCard = ({ item, showAddButton = true }: Props) => {
 
           <button
             onClick={increase}
-            className="w-6 h-6 rounded border text-xs active:scale-95"
+            aria-label="Aumentar cantidad"
+            className="w-8 h-8 rounded border text-sm active:scale-95"
           >
             +
           </button>
@@ -100,7 +102,7 @@ export const ShopItemCard = ({ item, showAddButton = true }: Props) => {
           <button
             onClick={handleAdd}
             disabled={item.stock === 0}
-            className="w-full text-[11px] py-1.5 rounded-lg bg-slate-900 text-white font-semibold disabled:opacity-40 active:scale-[0.98]"
+            className="w-full text-xs py-2 rounded-lg bg-slate-900 text-white font-semibold disabled:opacity-40 active:scale-[0.98]"
           >
             Agregar
           </button>
