@@ -11,27 +11,21 @@ const PAGE_SIZE = 10;
 export default function CategoriesTable({ clientId }: Props) {
   const [items, setItems] = useState<CategoryEntity[]>([]);
   const [edited, setEdited] = useState<Record<string, Partial<CategoryEntity>>>({});
-  const [filter, setFilter] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(0);
-  const [total, setTotal] = useState(0);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  const maxPage = Math.max(0, Math.ceil(total / PAGE_SIZE) - 1);
-
-  const load = useCallback(async (nextPage = 0) => {
-    const from = nextPage * PAGE_SIZE;
-    const to = from + PAGE_SIZE - 1;
-    const { rows, count } = await getCategories(clientId, { from, to });
+  const load = useCallback(async () => {
+    const { rows } = await getCategories(clientId, { from: 0, to: 9999 });
 
     setItems(rows);
-    setTotal(count);
     setEdited({});
   }, [clientId]);
 
   useEffect(() => {
-    load(page);
-  }, [page, load]);
+    load();
+  }, [load]);
 
   const notify = (text: string) => {
     setMessage(text);
@@ -61,7 +55,7 @@ export default function CategoriesTable({ clientId }: Props) {
       );
 
       notify("Cambios guardados");
-      load(page);
+      load();
     } finally {
       setSaving(false);
     }
@@ -91,24 +85,46 @@ export default function CategoriesTable({ clientId }: Props) {
 
       await deleteCategory(id);
       notify("Categoría eliminada");
-      load(page);
+      load();
     } catch {
       notify("No se pudo eliminar");
     }
   };
 
   const filteredItems = useMemo(() => {
-    if (!filter.trim()) return items;
-    return items.filter((item) => (item.name ?? "").toLowerCase().includes(filter.toLowerCase()));
-  }, [items, filter]);
+    if (!searchTerm.trim()) return items;
+
+    const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+    return items.filter((item) =>
+      (item.name ?? "").toLowerCase().includes(normalizedSearchTerm)
+    );
+  }, [items, searchTerm]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [searchTerm]);
+
+  const maxPage = Math.max(0, Math.ceil(filteredItems.length / PAGE_SIZE) - 1);
+
+  useEffect(() => {
+    if (page > maxPage) {
+      setPage(maxPage);
+    }
+  }, [page, maxPage]);
+
+  const paginatedItems = useMemo(() => {
+    const from = page * PAGE_SIZE;
+    const to = from + PAGE_SIZE;
+    return filteredItems.slice(from, to);
+  }, [filteredItems, page]);
 
   return (
     <div className="p-4 flex flex-col gap-4 min-w-[800px]">
       <div className="flex items-center justify-between gap-2">
         <input
           placeholder="Filtrar..."
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
           className="px-3 py-2 text-sm rounded-md border border-zinc-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
 
@@ -140,7 +156,7 @@ export default function CategoriesTable({ clientId }: Props) {
               </>
             }
           >
-            {filteredItems.map((item, i) => {
+            {paginatedItems.map((item, i) => {
               const isEdited = edited[item.id];
               return (
                 <tr

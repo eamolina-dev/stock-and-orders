@@ -24,6 +24,7 @@ export default function ProductsTable({ clientId }: Props) {
   const [items, setItems] = useState<ItemUI[]>([]);
   const [edited, setEdited] = useState<Record<string, Partial<ItemUI>>>({});
   const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [categories, setCategories] = useState<CategoryEntity[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +64,7 @@ export default function ProductsTable({ clientId }: Props) {
 
   useEffect(() => {
     setPage(0);
-  }, [searchTerm]);
+  }, [searchTerm, categoryFilter]);
 
   const parseNumber = (value: string): number | null => {
     if (!value.trim()) return null;
@@ -304,13 +305,18 @@ export default function ProductsTable({ clientId }: Props) {
   }, [items]);
 
   const filteredItems = useMemo(() => {
-    if (!searchTerm.trim()) return items;
-
     const normalizedSearchTerm = searchTerm.trim().toLowerCase();
-    return items.filter((item) =>
-      (item.name ?? "").toLowerCase().includes(normalizedSearchTerm)
-    );
-  }, [items, searchTerm]);
+
+    return items.filter((item) => {
+      const matchesSearch = (item.name ?? "")
+        .toLowerCase()
+        .includes(normalizedSearchTerm);
+      const matchesCategory =
+        !categoryFilter || item.category_id === categoryFilter;
+
+      return matchesSearch && matchesCategory;
+    });
+  }, [items, searchTerm, categoryFilter]);
 
   const maxPage = Math.max(0, Math.ceil(filteredItems.length / PAGE_SIZE) - 1);
 
@@ -329,12 +335,26 @@ export default function ProductsTable({ clientId }: Props) {
   return (
     <div className="p-4 flex flex-col gap-4 min-w-max">
       <div className="flex items-center justify-between gap-2">
-        <input
-          placeholder="Filtrar..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="px-3 py-2 text-sm rounded-md border border-zinc-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-        />
+        <div className="flex items-center gap-2">
+          <input
+            placeholder="Buscar producto..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="px-3 py-2 text-sm rounded-md border border-zinc-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+          <select
+            value={categoryFilter ?? ""}
+            onChange={(e) => setCategoryFilter(e.target.value || null)}
+            className="px-3 py-2 text-sm rounded-md border border-zinc-300 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+            <option value="">Todas las categorías</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
         <button
           disabled={saving || !hasChanges || hasErrors}
           onClick={handleSave}
