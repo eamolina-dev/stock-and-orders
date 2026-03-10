@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { optimizeImage } from "../../../utils/optimizeImage";
 import { DataTable } from "../../../shared/tables/DataTable";
 import { TablePagination } from "../../../shared/tables/TablePagination";
@@ -23,7 +23,7 @@ const PAGE_SIZE = 10;
 export default function ProductsTable({ clientId }: Props) {
   const [items, setItems] = useState<ItemUI[]>([]);
   const [edited, setEdited] = useState<Record<string, Partial<ItemUI>>>({});
-  const [filter, setFilter] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [categories, setCategories] = useState<CategoryEntity[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -31,19 +31,11 @@ export default function ProductsTable({ clientId }: Props) {
   const [saving, setSaving] = useState(false);
   const [page, setPage] = useState(0);
   const [total, setTotal] = useState(0);
-  const [selectedFiles, setSelectedFiles] = useState<
-    Record<string, File | null>
-  >({});
-  const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({});
   const [uploadingIds, setUploadingIds] = useState<string[]>([]);
-
-  useEffect(() => {
-    return () => {
-      Object.values(previewUrls).forEach((previewUrl) =>
-        URL.revokeObjectURL(previewUrl)
-      );
-    };
-  }, [previewUrls]);
+  const [imageAvailability, setImageAvailability] = useState<
+    Record<string, boolean>
+  >({});
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const maxPage = Math.max(0, Math.ceil(total / PAGE_SIZE) - 1);
 
@@ -224,35 +216,9 @@ export default function ProductsTable({ clientId }: Props) {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
 
-  const handleFileChange = (itemId: string, file: File | null) => {
+  const handleUploadImage = async (item: ItemUI, file: File) => {
     if (file && file.size > 10 * 1024 * 1024) {
       notifyError("La imagen no puede superar los 10MB");
-      return;
-    }
-
-    setSelectedFiles((prev) => ({ ...prev, [itemId]: file }));
-
-    if (previewUrls[itemId]) {
-      URL.revokeObjectURL(previewUrls[itemId]);
-    }
-
-    if (!file) {
-      setPreviewUrls((prev) => {
-        const copy = { ...prev };
-        delete copy[itemId];
-        return copy;
-      });
-      return;
-    }
-
-    const nextPreviewUrl = URL.createObjectURL(file);
-    setPreviewUrls((prev) => ({ ...prev, [itemId]: nextPreviewUrl }));
-  };
-
-  const handleUploadImage = async (item: ItemUI) => {
-    const file = selectedFiles[item.id];
-    if (!file) {
-      notifyError("Seleccioná una imagen antes de subir");
       return;
     }
 
@@ -301,6 +267,7 @@ export default function ProductsTable({ clientId }: Props) {
         }
         return copy;
       });
+      setImageAvailability((prev) => ({ ...prev, [item.id]: true }));
       notifySuccess("Imagen subida y producto actualizado");
     } catch {
       notifyError("No se pudo subir la imagen");
@@ -309,20 +276,51 @@ export default function ProductsTable({ clientId }: Props) {
     }
   };
 
+  useEffect(() => {
+    let active = true;
+
+    const verifyImageUrls = async () => {
+      const entries = await Promise.all(
+        items.map(async (item) => {
+          const imageUrl = item.image_url?.trim();
+          if (!imageUrl) return [item.id, false] as const;
+
+          try {
+            const response = await fetch(imageUrl, { method: "HEAD" });
+            return [item.id, response.ok] as const;
+          } catch {
+            return [item.id, false] as const;
+          }
+        })
+      );
+
+      if (!active) return;
+      setImageAvailability(Object.fromEntries(entries));
+    };
+
+    verifyImageUrls();
+
+    return () => {
+      active = false;
+    };
+  }, [items]);
+
   const filteredItems = useMemo(() => {
-    if (!filter.trim()) return items;
+    if (!searchTerm.trim()) return items;
+
+    const normalizedSearchTerm = searchTerm.trim().toLowerCase();
     return items.filter((item) =>
-      (item.name ?? "").toLowerCase().includes(filter.toLowerCase())
+      (item.name ?? "").toLowerCase().includes(normalizedSearchTerm)
     );
-  }, [items, filter]);
+  }, [items, searchTerm]);
 
   return (
     <div className="p-4 flex flex-col gap-4 min-w-max">
       <div className="flex items-center justify-between gap-2">
         <input
           placeholder="Filtrar..."
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
           className="px-3 py-2 text-sm rounded-md border border-zinc-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
         <button
@@ -403,12 +401,19 @@ export default function ProductsTable({ clientId }: Props) {
                   {/* <input value={item.image_url ?? ""} onChange={(e) => handleChange(item.id, "image_url", e.target.value)} placeholder="URL" className="w-full bg-transparent outline-none px-2 py-1 rounded" /> */}
                   <div className="flex items-center gap-2">
                     <input
+                      ref={(node) => {
+                        fileInputRefs.current[item.id] = node;
+                      }}
                       type="file"
                       accept="image/*"
-                      onChange={(e) =>
-                        handleFileChange(item.id, e.target.files?.[0] ?? null)
-                      }
-                      className="max-w-[220px] text-xs"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          void handleUploadImage(item, file);
+                        }
+                        e.target.value = "";
+                      }}
+                      className="hidden"
                     />
                     <button
                       type="button"
@@ -416,21 +421,25 @@ export default function ProductsTable({ clientId }: Props) {
                         item.id.startsWith("temp_") ||
                         uploadingIds.includes(item.id)
                       }
-                      onClick={() => handleUploadImage(item)}
+                      onClick={() => fileInputRefs.current[item.id]?.click()}
                       className="px-2 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-500 disabled:bg-zinc-300 disabled:text-zinc-500"
                     >
                       {uploadingIds.includes(item.id)
                         ? "Subiendo..."
-                        : "Subir Imagen"}
+                        : "Subir imagen"}
                     </button>
+
+                    {imageAvailability[item.id] && item.image_url && (
+                      <a
+                        href={item.image_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-2 py-1 text-xs rounded bg-zinc-200 text-zinc-700 hover:bg-zinc-300"
+                      >
+                        Ver imagen
+                      </a>
+                    )}
                   </div>
-                  {previewUrls[item.id] && (
-                    <img
-                      src={previewUrls[item.id]}
-                      alt="Vista previa"
-                      className="max-w-[200px] rounded object-cover border border-zinc-200"
-                    />
-                  )}
                 </div>
               </td>
               <td className="px-3 py-2">
