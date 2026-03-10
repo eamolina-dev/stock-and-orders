@@ -24,7 +24,11 @@ const normalizeText = (text: string) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 
-export default function ShopHome() {
+type HomeProps = {
+  adminMode?: boolean;
+};
+
+export default function ShopHome({ adminMode = false }: HomeProps) {
   const [search, setSearch] = useState("");
   const [searching, setSearching] = useState(false);
   const [menu, setMenu] = useState<ShopCategoryType[]>([]);
@@ -99,6 +103,18 @@ export default function ShopHome() {
   return (
     <CartProvider>
       <div className={`menu-theme ${themeClass} min-h-screen relative`}>
+        {adminMode && (
+          <div className="bg-black text-white text-sm p-2 flex justify-between">
+            <span>Modo administrador</span>
+            <Link
+              to={`/${clientSlug}/admin/dashboard`}
+              className="font-semibold hover:underline"
+            >
+              Ir al panel
+            </Link>
+          </div>
+        )}
+
         <Header
           name={client.name ?? ""}
           description="Casa de bebidas"
@@ -126,10 +142,10 @@ export default function ShopHome() {
         </div>
 
         <main className="max-w-2xl mx-auto px-4 pt-8 pb-24">
-          {isAdminSession && (
+          {!adminMode && isAdminSession && (
             <div className="mb-4 rounded-xl border border-emerald-400/40 bg-emerald-50 p-3 text-sm text-emerald-800">
               <Link
-                to={`/${clientSlug}/admin`}
+                to={`/${clientSlug}/admin/dashboard`}
                 className="inline-flex items-center gap-2 font-semibold hover:underline"
               >
                 <Shield size={14} />

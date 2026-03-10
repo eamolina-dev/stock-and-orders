@@ -1,9 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import {
+  Link,
+  Navigate,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { themes } from "../../../theme/themes";
-import { signInWithPassword } from "../../../shared/auth/session";
+import { getSession, signInWithPassword } from "../../../shared/auth/session";
+import type { User } from "@supabase/supabase-js";
 
 type LocationState = {
   from?: string;
@@ -14,6 +21,7 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [user, setUser] = useState<User | null | undefined>(undefined);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,6 +29,22 @@ export default function AdminLogin() {
   const from = (location.state as LocationState | null)?.from;
 
   const themeClass = themes.dark;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const syncSession = async () => {
+      const session = await getSession();
+      if (!isMounted) return;
+      setUser(session?.user ?? null);
+    };
+
+    syncSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -35,15 +59,23 @@ export default function AdminLogin() {
       return;
     }
 
-    navigate(from || `/${clientSlug}/admin`, { replace: true });
+    navigate(from || `/${clientSlug}/admin/dashboard`, { replace: true });
   };
+
+  if (!clientSlug || user === undefined) {
+    return <div className="p-6 text-center">Cargando...</div>;
+  }
+
+  if (user) {
+    return <Navigate to={`/${clientSlug}/admin/dashboard`} replace />;
+  }
 
   return (
     <div className={`menu-theme ${themeClass} min-h-screen px-4 py-8`}>
       <div className="mx-auto w-full max-w-md">
         <button
           type="button"
-          onClick={() => navigate(`/${clientSlug}/shop`)}
+          onClick={() => navigate(`/shop/${clientSlug}`)}
           className="mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-300/70 bg-white/80 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-white"
         >
           <ArrowLeft size={16} />
@@ -97,7 +129,7 @@ export default function AdminLogin() {
 
           <p className="muted mt-6 text-center text-xs">
             ¿Volver al menú público?{" "}
-            <Link className="accent font-semibold" to={`/${clientSlug}/shop`}>
+            <Link className="accent font-semibold" to={`/shop/${clientSlug}`}>
               Ir al inicio
             </Link>
           </p>

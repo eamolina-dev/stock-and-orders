@@ -22,7 +22,7 @@ export default function AdminDashboard() {
       <div className="w-full max-w-6xl mx-auto px-4 py-8 flex flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <NavLink
-            to={`/${clientSlug}/shop`}
+            to={`/shop/${clientSlug}`}
             className="inline-flex items-center gap-2 rounded-md border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition hover:bg-zinc-800"
           >
             <ArrowLeft size={16} />
@@ -31,13 +31,22 @@ export default function AdminDashboard() {
 
           <h1 className="text-xl font-semibold">Dashboard</h1>
 
-          <button
-            type="button"
-            onClick={signOut}
-            className="rounded-md border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition hover:bg-zinc-800"
-          >
-            Cerrar sesión
-          </button>
+          <div className="flex items-center gap-2">
+            <NavLink
+              to={`/${clientSlug}/admin/shop`}
+              className="rounded-md border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition hover:bg-zinc-800"
+            >
+              Ver tienda
+            </NavLink>
+
+            <button
+              type="button"
+              onClick={signOut}
+              className="rounded-md border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition hover:bg-zinc-800"
+            >
+              Cerrar sesión
+            </button>
+          </div>
         </div>
 
         <div className="flex gap-2">
@@ -46,8 +55,8 @@ export default function AdminDashboard() {
               key={tab.value}
               to={
                 tab.value === "products"
-                  ? `/${clientSlug}/admin`
-                  : `/${clientSlug}/admin?tab=categories`
+                  ? `/${clientSlug}/admin/dashboard`
+                  : `/${clientSlug}/admin/dashboard?tab=categories`
               }
               className={`px-3 py-1.5 text-sm rounded-md transition ${
                 activeTab === tab.value
