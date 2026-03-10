@@ -30,42 +30,40 @@ export default function ProductsTable({ clientId }: Props) {
   const [highlightIds, setHighlightIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [page, setPage] = useState(0);
-  const [total, setTotal] = useState(0);
   const [uploadingIds, setUploadingIds] = useState<string[]>([]);
   const [imageAvailability, setImageAvailability] = useState<
     Record<string, boolean>
   >({});
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
-  const maxPage = Math.max(0, Math.ceil(total / PAGE_SIZE) - 1);
 
   const load = useCallback(
-    async (nextPage = 0) => {
-      const from = nextPage * PAGE_SIZE;
-      const to = from + PAGE_SIZE - 1;
-
-      const { rows, count } = await getItems(clientId, { from, to });
+    async () => {
+      const { rows } = await getItems(clientId, { from: 0, to: 9999 });
       setItems(
         rows.map((item) => ({
           ...item,
           price: item.price === null ? "" : String(item.price),
         }))
       );
-      setTotal(count);
       setEdited({});
     },
     [clientId]
   );
 
   useEffect(() => {
-    load(page);
-  }, [page, load]);
+    load();
+  }, [load]);
 
   useEffect(() => {
     getCategories(clientId, { from: 0, to: 999 }).then((res) =>
       setCategories(res.rows)
     );
   }, [clientId]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [searchTerm]);
 
   const parseNumber = (value: string): number | null => {
     if (!value.trim()) return null;
@@ -144,7 +142,7 @@ export default function ProductsTable({ clientId }: Props) {
       notifySuccess("Cambios guardados");
       setHighlightIds(affectedIds);
       setTimeout(() => setHighlightIds([]), 1500);
-      load(page);
+      load();
     } catch {
       notifyError("No se pudieron guardar los cambios");
     } finally {
@@ -314,6 +312,20 @@ export default function ProductsTable({ clientId }: Props) {
     );
   }, [items, searchTerm]);
 
+  const maxPage = Math.max(0, Math.ceil(filteredItems.length / PAGE_SIZE) - 1);
+
+  useEffect(() => {
+    if (page > maxPage) {
+      setPage(maxPage);
+    }
+  }, [page, maxPage]);
+
+  const paginatedItems = useMemo(() => {
+    const from = page * PAGE_SIZE;
+    const to = from + PAGE_SIZE;
+    return filteredItems.slice(from, to);
+  }, [filteredItems, page]);
+
   return (
     <div className="p-4 flex flex-col gap-4 min-w-max">
       <div className="flex items-center justify-between gap-2">
@@ -358,7 +370,7 @@ export default function ProductsTable({ clientId }: Props) {
           </>
         }
       >
-        {filteredItems.map((item, i) => {
+        {paginatedItems.map((item, i) => {
           const invalidPrice =
             item.price !== "" && parseNumber(item.price) === null;
           const isEdited = edited[item.id];
