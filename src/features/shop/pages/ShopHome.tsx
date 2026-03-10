@@ -114,7 +114,7 @@ export default function ShopHome({ adminMode = false }: HomeProps) {
         />
 
         <div className="sticky top-0 z-30 bg-[var(--bg)]/80 backdrop-blur border-b">
-          <div className="flex gap-2 overflow-x-auto px-4 py-3 max-w-2xl mx-auto">
+          <div className="shop-category-scroll flex gap-2 overflow-x-auto px-4 py-3 max-w-2xl mx-auto">
             {menu.map((category) => (
               <button
                 key={category.id}
