@@ -31,7 +31,6 @@ export default function ProductsTable({ clientId }: Props) {
   const [highlightIds, setHighlightIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [page, setPage] = useState(0);
-  const [priceFocusId, setPriceFocusId] = useState<string | null>(null);
   const [uploadingIds, setUploadingIds] = useState<string[]>([]);
   const [loadingItems, setLoadingItems] = useState(true);
   const [loadingCategories, setLoadingCategories] = useState(true);
@@ -115,15 +114,6 @@ export default function ProductsTable({ clientId }: Props) {
       .replace(/[\u0300-\u036f]/g, "")
       .trim();
 
-  const parsePriceInput = (value: string) => value.replace(/\D/g, "");
-
-  const formatPriceDisplay = (value: string, showDash = false) => {
-    if (!value.trim()) return showDash ? "—" : "";
-    const numericValue = Number(value);
-    if (Number.isNaN(numericValue)) return value;
-    return numericValue.toLocaleString("es-AR");
-  };
-
   const notifySuccess = (text: string) => {
     setError(null);
     setMessage(text);
@@ -156,7 +146,7 @@ export default function ProductsTable({ clientId }: Props) {
 
 
   const handlePriceChange = (id: string, value: string) => {
-    handleChange(id, "price", parsePriceInput(value));
+    handleChange(id, "price", value);
   };
 
   const hasChanges = Object.keys(edited).length > 0;
@@ -348,9 +338,9 @@ export default function ProductsTable({ clientId }: Props) {
       console.error("Error uploading product image", uploadError);
       setUploadErrors((prev) => ({
         ...prev,
-        [item.id]: "Error al subir la imagen",
+        [item.id]: "No se pudo subir la imagen. Intenta nuevamente.",
       }));
-      notifyError("Error al subir la imagen");
+      notifyError("No se pudo subir la imagen. Intenta nuevamente.");
     } finally {
       setUploadingIds((prev) => prev.filter((id) => id !== item.id));
     }
@@ -545,44 +535,14 @@ export default function ProductsTable({ clientId }: Props) {
                 />
               </td>
               <td className="px-3 py-2">
-                {item.price ? (
-                  <div
-                    className={`relative w-28 rounded ${
-                      invalidPrice ? "ring-1 ring-red-500" : ""
-                    }`}
-                  >
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
-                      $
-                    </span>
-                    <input
-                      value={formatPriceDisplay(item.price || "")}
-                      inputMode="numeric"
-                      onChange={(e) => handlePriceChange(item.id, e.target.value)}
-                      onFocus={() => setPriceFocusId(item.id)}
-                      onBlur={() => setPriceFocusId((current) => (current === item.id ? null : current))}
-                      className="w-full bg-transparent outline-none pl-7 pr-2 py-1 rounded"
-                    />
-                  </div>
-                ) : (
-                  <div
-                    className={`relative w-28 rounded ${
-                      invalidPrice ? "ring-1 ring-red-500" : ""
-                    }`}
-                  >
-                    <input
-                      value={
-                        priceFocusId === item.id
-                          ? ""
-                          : formatPriceDisplay(item.price || "", true)
-                      }
-                      inputMode="numeric"
-                      onChange={(e) => handlePriceChange(item.id, e.target.value)}
-                      onFocus={() => setPriceFocusId(item.id)}
-                      onBlur={() => setPriceFocusId((current) => (current === item.id ? null : current))}
-                      className="w-full bg-transparent outline-none px-2 py-1 rounded text-zinc-500"
-                    />
-                  </div>
-                )}
+                <input
+                  type="number"
+                  value={item.price ?? ""}
+                  onChange={(e) => handlePriceChange(item.id, e.target.value)}
+                  className={`w-28 bg-transparent outline-none px-2 py-1 rounded ${
+                    invalidPrice ? "ring-1 ring-red-500" : ""
+                  }`}
+                />
               </td>
               <td className="px-3 py-2">
                 <div className="flex flex-col gap-2">
