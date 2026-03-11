@@ -24,7 +24,7 @@ export function AdminNavbar({ clientSlug, variant, onSignOut }: Props) {
   return (
     <div className="z-50 bg-black text-white text-sm px-4 py-3 flex items-center justify-between border-b border-white/20">
       <Link
-        to={`/${clientSlug}/admin`}
+        to={`/${clientSlug}/admin/shop`}
         className="rounded-md border border-white/40 px-3 py-1.5 font-semibold hover:bg-white hover:text-black"
       >
         Ver tienda

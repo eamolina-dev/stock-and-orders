@@ -24,7 +24,7 @@ export default function App() {
           <Route index element={<AdminDashboard />} />
         </Route>
 
-        <Route path="/:clientSlug/admin" element={<ProtectedRoute />}>
+        <Route path="/:clientSlug/admin/shop" element={<ProtectedRoute />}>
           <Route element={<ClientShopLayout />}>
             <Route index element={<ShopHome adminMode />} />
           </Route>
