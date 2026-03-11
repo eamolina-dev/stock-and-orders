@@ -130,7 +130,6 @@ export default function ShopHome({ adminMode = false }: HomeProps) {
         <Header
           name={client.name ?? ""}
           description="Casa de bebidas"
-          image="/pexels-maksgelatin-5748508.jpg"
           style={headerStyle}
         />
 
