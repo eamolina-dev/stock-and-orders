@@ -11,9 +11,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/shop/toma" replace />} />
+        <Route path="/" element={<Navigate to="/toma/shop" replace />} />
 
-        <Route path="/shop/:clientSlug" element={<ClientShopLayout />}>
+        <Route path="/:clientSlug/shop" element={<ClientShopLayout />}>
           <Route index element={<ShopHome />} />
         </Route>
 

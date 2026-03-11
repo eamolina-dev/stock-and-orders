@@ -1,4 +1,9 @@
-import { NavLink, useNavigate, useOutletContext, useSearchParams } from "react-router-dom";
+import {
+  NavLink,
+  useNavigate,
+  useOutletContext,
+  useSearchParams,
+} from "react-router-dom";
 import CategoriesTable from "../components/CategoriesTable";
 import ProductsTable from "../components/ProductsTable";
 import { signOut } from "../../../shared/auth/session";
@@ -36,7 +41,11 @@ export default function AdminDashboard() {
 
   return (
     <div className={`menu-theme ${themeClass} min-h-screen`}>
-      <AdminNavbar clientSlug={clientSlug} variant="dashboard" onSignOut={handleSignOut} />
+      <AdminNavbar
+        clientSlug={clientSlug}
+        variant="dashboard"
+        onSignOut={handleSignOut}
+      />
 
       <div className="w-full max-w-6xl mx-auto px-4 py-8 flex flex-col gap-6">
         <h1 className="text-xl font-semibold">Dashboard</h1>

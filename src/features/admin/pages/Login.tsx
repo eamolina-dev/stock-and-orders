@@ -24,7 +24,9 @@ export default function AdminLogin() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState<User | null | undefined>(undefined);
-  const [clientExists, setClientExists] = useState<boolean | undefined>(undefined);
+  const [clientExists, setClientExists] = useState<boolean | undefined>(
+    undefined
+  );
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -156,7 +158,7 @@ export default function AdminLogin() {
 
           <p className="muted mt-6 text-center text-xs">
             ¿Volver al menú público?{" "}
-            <Link className="accent font-semibold" to={`/shop/${clientSlug}`}>
+            <Link className="accent font-semibold" to={`/${clientSlug}/shop`}>
               Ir al inicio
             </Link>
           </p>
