@@ -40,6 +40,7 @@ export default function ProductsTable({ clientId }: Props) {
   >({});
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
+  const originalItemsRef = useRef<Record<string, ItemUI>>({});
 
 
   const load = useCallback(
@@ -51,6 +52,9 @@ export default function ProductsTable({ clientId }: Props) {
           ...item,
           price: item.price === null ? "" : String(item.price),
         }));
+        originalItemsRef.current = Object.fromEntries(
+          mappedRows.map((item) => [item.id, item])
+        );
         setItems(mappedRows);
         setEdited({});
         return mappedRows;
@@ -233,7 +237,7 @@ export default function ProductsTable({ clientId }: Props) {
     const existingUnsaved = items.find((item) => item.id.startsWith("temp_"));
     if (existingUnsaved) {
       focusRow(existingUnsaved.id);
-      notifyError("Ya existe un producto sin guardar");
+      notifyError("Tenés cambios sin guardar");
       return;
     }
 
@@ -259,6 +263,75 @@ export default function ProductsTable({ clientId }: Props) {
       delete copy[id];
       return copy;
     });
+  };
+
+  const handleCancelRow = (id: string) => {
+    if (id.startsWith("temp_")) {
+      handleCancelUnsaved(id);
+      return;
+    }
+
+    const originalItem = originalItemsRef.current[id];
+    if (!originalItem) return;
+
+    setItems((prev) => prev.map((item) => (item.id === id ? originalItem : item)));
+    setEdited((prev) => {
+      const copy = { ...prev };
+      delete copy[id];
+      return copy;
+    });
+  };
+
+  const handleSaveRow = async (id: string) => {
+    const row = items.find((item) => item.id === id);
+    if (!row) return;
+    if (!(row.name ?? "").trim()) return;
+    if (row.price !== "" && parseNumber(row.price) === null) return;
+    if (!edited[id]) return;
+
+    setSaving(true);
+    try {
+      if (id.startsWith("temp_")) {
+        await createItem({
+          name: row.name ?? null,
+          price: parseNumber(row.price) ?? 0,
+          image_url: row.image_url ?? null,
+          category_id: row.category_id ?? null,
+          client_id: clientId,
+        });
+        notifySuccess("Producto creado");
+      } else {
+        const data = edited[id];
+        await updateItem(id, {
+          ...(data.name !== undefined && { name: data.name }),
+          ...(data.price !== undefined && { price: parseNumber(data.price) }),
+          ...(data.image_url !== undefined && { image_url: data.image_url }),
+          ...(data.category_id !== undefined && { category_id: data.category_id }),
+        });
+        notifySuccess("Cambios guardados");
+      }
+      await load();
+    } catch (saveError) {
+      console.error("Error saving product row", saveError);
+      notifyError("Error al cargar los datos");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleRowKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>,
+    id: string
+  ) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      void handleSaveRow(id);
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      handleCancelRow(id);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -534,6 +607,7 @@ export default function ProductsTable({ clientId }: Props) {
                   onChange={(e) =>
                     handleChange(item.id, "name", e.target.value)
                   }
+                  onKeyDown={(e) => handleRowKeyDown(e, item.id)}
                   className="w-full bg-transparent outline-none px-2 py-1 rounded"
                 />
               </td>
@@ -542,6 +616,7 @@ export default function ProductsTable({ clientId }: Props) {
                   type="number"
                   value={item.price ?? ""}
                   onChange={(e) => handlePriceChange(item.id, e.target.value)}
+                  onKeyDown={(e) => handleRowKeyDown(e, item.id)}
                   className={`w-28 bg-transparent outline-none px-2 py-1 rounded ${
                     invalidPrice ? "ring-1 ring-red-500" : ""
                   }`}
@@ -599,6 +674,7 @@ export default function ProductsTable({ clientId }: Props) {
                   onChange={(e) =>
                     handleChange(item.id, "category_id", e.target.value)
                   }
+                  onKeyDown={(e) => handleRowKeyDown(e, item.id)}
                   className="bg-transparent outline-none"
                 >
                   <option value="">Sin categoría</option>

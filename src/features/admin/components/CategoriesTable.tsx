@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DataTable } from "../../../shared/tables/DataTable";
 import { TablePagination } from "../../../shared/tables/TablePagination";
 import { createCategory, deleteCategory, getCategories, updateCategory } from "../../../modules/categories/queries";
@@ -18,13 +18,19 @@ export default function CategoriesTable({ clientId }: Props) {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
+  const originalItemsRef = useRef<Record<string, CategoryEntity>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const { rows } = await getCategories(clientId, { from: 0, to: 9999 });
 
-      setItems(rows ?? []);
+      const mappedRows = rows ?? [];
+      originalItemsRef.current = Object.fromEntries(
+        mappedRows.map((item) => [item.id, item])
+      );
+      setItems(mappedRows);
       setEdited({});
     } catch (loadError) {
       console.error("Error loading categories", loadError);
@@ -84,11 +90,91 @@ export default function CategoriesTable({ clientId }: Props) {
   };
 
   const handleAddRow = () => {
+    setSearchTerm("");
+    setPage(0);
+
+    const existingUnsaved = items.find((item) => item.id.startsWith("temp_"));
+    if (existingUnsaved) {
+      const targetRow = rowRefs.current[existingUnsaved.id];
+      targetRow?.scrollIntoView({ behavior: "smooth", block: "center" });
+      const input = targetRow?.querySelector("input") as HTMLInputElement | null;
+      input?.focus();
+      notifyError("Tenés cambios sin guardar");
+      return;
+    }
+
     const tempId = `temp_${Date.now()}`;
     const newItem = { id: tempId, name: "" } as CategoryEntity;
 
     setItems((prev) => [newItem, ...prev]);
     setEdited((prev) => ({ ...prev, [tempId]: newItem }));
+
+    setTimeout(() => {
+      const targetRow = rowRefs.current[tempId];
+      targetRow?.scrollIntoView({ behavior: "smooth", block: "center" });
+      const input = targetRow?.querySelector("input") as HTMLInputElement | null;
+      input?.focus();
+    }, 0);
+  };
+
+  const handleCancelUnsaved = (id: string) => {
+    setItems((prev) => prev.filter((item) => item.id !== id));
+    setEdited((prev) => {
+      const copy = { ...prev };
+      delete copy[id];
+      return copy;
+    });
+  };
+
+  const handleCancelRow = (id: string) => {
+    if (id.startsWith("temp_")) {
+      handleCancelUnsaved(id);
+      return;
+    }
+
+    const originalItem = originalItemsRef.current[id];
+    if (!originalItem) return;
+
+    setItems((prev) => prev.map((item) => (item.id === id ? originalItem : item)));
+    setEdited((prev) => {
+      const copy = { ...prev };
+      delete copy[id];
+      return copy;
+    });
+  };
+
+  const handleSaveRow = async (id: string) => {
+    const row = items.find((item) => item.id === id);
+    if (!row || !(row.name ?? "").trim() || !edited[id]) return;
+
+    setSaving(true);
+    try {
+      if (id.startsWith("temp_")) {
+        await createCategory({ name: row.name ?? null, client_id: clientId });
+        notify("Cambios guardados");
+      } else {
+        await updateCategory(id, { name: edited[id].name ?? null });
+        notify("Cambios guardados");
+      }
+      await load();
+    } catch (saveError) {
+      console.error("Error saving category row", saveError);
+      notifyError("Error al cargar los datos");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleRowKeyDown = (event: React.KeyboardEvent<HTMLInputElement>, id: string) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      void handleSaveRow(id);
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      handleCancelRow(id);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -96,12 +182,7 @@ export default function CategoriesTable({ clientId }: Props) {
 
     try {
       if (id.startsWith("temp_")) {
-        setItems((prev) => prev.filter((item) => item.id !== id));
-        setEdited((prev) => {
-          const copy = { ...prev };
-          delete copy[id];
-          return copy;
-        });
+        handleCancelUnsaved(id);
         return;
       }
 
@@ -192,6 +273,9 @@ export default function CategoriesTable({ clientId }: Props) {
               return (
                 <tr
                   key={item.id}
+                  ref={(node) => {
+                    rowRefs.current[item.id] = node;
+                  }}
                   className={`${item.id.startsWith("temp_") ? "bg-amber-50" : i % 2 === 0 ? "bg-zinc-50" : "bg-zinc-100"} hover:bg-emerald-50 transition-colors ${isEdited || item.id.startsWith("temp_") ? "ring-1 ring-amber-400" : ""}`}
                 >
                   <td className="px-3 py-2">
@@ -201,14 +285,20 @@ export default function CategoriesTable({ clientId }: Props) {
                           Nuevo
                         </span>
                       )}
-                      <input value={item.name || ""} onChange={(e) => handleChange(item.id, e.target.value)} className="w-full bg-transparent outline-none px-2 py-1 rounded" />
+                      <input value={item.name || ""} onChange={(e) => handleChange(item.id, e.target.value)} onKeyDown={(e) => handleRowKeyDown(e, item.id)} className="w-full bg-transparent outline-none px-2 py-1 rounded" />
                     </div>
                   </td>
 
                   <td className="px-3 py-2">
-                    <button onClick={() => handleDelete(item.id)} className="rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50">
-                      Eliminar
-                    </button>
+                    {item.id.startsWith("temp_") ? (
+                      <button onClick={() => handleCancelUnsaved(item.id)} className="rounded px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-200">
+                        Cancelar
+                      </button>
+                    ) : (
+                      <button onClick={() => handleDelete(item.id)} className="rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50">
+                        Eliminar
+                      </button>
+                    )}
                   </td>
                 </tr>
               );
