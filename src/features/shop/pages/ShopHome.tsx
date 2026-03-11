@@ -30,6 +30,7 @@ type HomeProps = {
 };
 
 export default function ShopHome({ adminMode = false }: HomeProps) {
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [searching, setSearching] = useState(false);
   const [menu, setMenu] = useState<ShopCategoryType[]>([]);
@@ -40,6 +41,16 @@ export default function ShopHome({ adminMode = false }: HomeProps) {
     null
   );
   const { client, clientSlug } = useOutletContext<ClientShopLayoutContext>();
+
+  useEffect(() => {
+    const debounceTimeout = window.setTimeout(() => {
+      setSearch(searchInput);
+    }, 250);
+
+    return () => {
+      window.clearTimeout(debounceTimeout);
+    };
+  }, [searchInput]);
 
   useEffect(() => {
     let mounted = true;
@@ -156,9 +167,9 @@ export default function ShopHome({ adminMode = false }: HomeProps) {
           )}
 
           <ItemSearch
-            search={search}
+            search={searchInput}
             placeholder="Buscar bebida ..."
-            setSearch={setSearch}
+            setSearch={setSearchInput}
             setSearching={setSearching}
           />
 

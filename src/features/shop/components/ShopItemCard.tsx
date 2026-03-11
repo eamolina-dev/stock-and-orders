@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { useCart } from "./CartContext";
 
 type Item = {
@@ -14,7 +14,7 @@ type Props = {
   showAddButton?: boolean;
 };
 
-export const ShopItemCard = ({ item, showAddButton = true }: Props) => {
+const ShopItemCardComponent = ({ item, showAddButton = true }: Props) => {
   const { addToCart } = useCart();
   const [qty, setQty] = useState(1);
   const [imageError, setImageError] = useState(false);
@@ -45,6 +45,7 @@ export const ShopItemCard = ({ item, showAddButton = true }: Props) => {
             src={item.image}
             alt={item.name}
             loading="lazy"
+            decoding="async"
             onLoad={() => setLoaded(true)}
             onError={(e) => {
               e.currentTarget.style.display = "none";
@@ -67,14 +68,10 @@ export const ShopItemCard = ({ item, showAddButton = true }: Props) => {
         </h3>
 
         <div className="flex items-center justify-between">
-          <span className="text-base font-bold tracking-tight">
-            ${item.price}
-          </span>
+          <span className="text-base font-bold tracking-tight">${item.price}</span>
 
           {typeof item.stock === "number" && (
-            <span className="text-[10px] text-gray-500">
-              Stock: {item.stock}
-            </span>
+            <span className="text-[10px] text-gray-500">Stock: {item.stock}</span>
           )}
         </div>
 
@@ -111,3 +108,5 @@ export const ShopItemCard = ({ item, showAddButton = true }: Props) => {
     </div>
   );
 };
+
+export const ShopItemCard = memo(ShopItemCardComponent);

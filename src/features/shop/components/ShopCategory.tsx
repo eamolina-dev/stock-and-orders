@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ShopItemCard } from "./ShopItemCard";
 import type { ShopCategory as ShopCategoryType } from "../../../modules/items/types";
 
@@ -6,7 +7,7 @@ type Props = {
   showAddButton?: boolean;
 };
 
-export const ShopCategory = ({ category, showAddButton }: Props) => {
+const ShopCategoryComponent = ({ category, showAddButton }: Props) => {
   return (
     <section id={category.id} className="mb-12">
       <h2 className="category accent text-2xl font-medium mb-6 border-b pb-2 text-center">
@@ -25,3 +26,5 @@ export const ShopCategory = ({ category, showAddButton }: Props) => {
     </section>
   );
 };
+
+export const ShopCategory = memo(ShopCategoryComponent);
