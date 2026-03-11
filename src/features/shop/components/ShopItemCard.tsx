@@ -38,7 +38,7 @@ const ShopItemCardComponent = ({ item, showAddButton = true }: Props) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl border shadow-sm overflow-hidden text-slate-900">
+    <div className="bg-white rounded-2xl border shadow-sm overflow-hidden text-slate-900 h-full flex flex-col">
       <div className="aspect-square bg-gray-100">
         {item.image && !imageError ? (
           <img
@@ -62,48 +62,50 @@ const ShopItemCardComponent = ({ item, showAddButton = true }: Props) => {
         )}
       </div>
 
-      <div className="p-2 space-y-1.5">
+      <div className="p-2 flex flex-col flex-1 gap-1.5">
         <h3 className="text-sm font-semibold leading-snug line-clamp-2">
           {item.name}
         </h3>
 
-        <div className="flex items-center justify-between">
-          <span className="text-base font-bold tracking-tight">${item.price}</span>
+        <div className="mt-auto flex flex-col gap-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-base font-bold tracking-tight">${item.price}</span>
 
-          {typeof item.stock === "number" && (
-            <span className="text-[10px] text-gray-500">Stock: {item.stock}</span>
+            {typeof item.stock === "number" && (
+              <span className="text-[10px] text-gray-500">Stock: {item.stock}</span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 pt-0.5">
+            <button
+              onClick={decrease}
+              aria-label="Disminuir cantidad"
+              className="w-8 h-8 rounded border text-sm active:scale-95"
+            >
+              –
+            </button>
+
+            <span className="text-xs font-semibold w-4 text-center">{qty}</span>
+
+            <button
+              onClick={increase}
+              aria-label="Aumentar cantidad"
+              className="w-8 h-8 rounded border text-sm active:scale-95"
+            >
+              +
+            </button>
+          </div>
+
+          {showAddButton && (
+            <button
+              onClick={handleAdd}
+              disabled={item.stock === 0}
+              className="w-full text-xs py-2 rounded-lg bg-slate-900 text-white font-semibold disabled:opacity-40 active:scale-[0.98]"
+            >
+              Agregar
+            </button>
           )}
         </div>
-
-        <div className="flex items-center gap-2 pt-0.5">
-          <button
-            onClick={decrease}
-            aria-label="Disminuir cantidad"
-            className="w-8 h-8 rounded border text-sm active:scale-95"
-          >
-            –
-          </button>
-
-          <span className="text-xs font-semibold w-4 text-center">{qty}</span>
-
-          <button
-            onClick={increase}
-            aria-label="Aumentar cantidad"
-            className="w-8 h-8 rounded border text-sm active:scale-95"
-          >
-            +
-          </button>
-        </div>
-
-        {showAddButton && (
-          <button
-            onClick={handleAdd}
-            disabled={item.stock === 0}
-            className="w-full text-xs py-2 rounded-lg bg-slate-900 text-white font-semibold disabled:opacity-40 active:scale-[0.98]"
-          >
-            Agregar
-          </button>
-        )}
       </div>
     </div>
   );

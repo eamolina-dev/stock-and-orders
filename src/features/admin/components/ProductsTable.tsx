@@ -39,6 +39,7 @@ export default function ProductsTable({ clientId }: Props) {
     Record<string, boolean>
   >({});
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
 
 
   const load = useCallback(
@@ -185,7 +186,30 @@ export default function ProductsTable({ clientId }: Props) {
     }
   };
 
+  const focusRow = (id: string) => {
+    const targetRow = rowRefs.current[id];
+    if (!targetRow) return;
+
+    targetRow.scrollIntoView({ behavior: "smooth", block: "center" });
+    const firstInput = targetRow.querySelector("input, select") as
+      | HTMLInputElement
+      | HTMLSelectElement
+      | null;
+    firstInput?.focus();
+  };
+
   const handleAddRow = () => {
+    setSearchTerm("");
+    setCategoryFilter(null);
+    setPage(0);
+
+    const existingUnsaved = items.find((item) => item.id.startsWith("temp_"));
+    if (existingUnsaved) {
+      focusRow(existingUnsaved.id);
+      notifyError("Ya existe un producto sin guardar");
+      return;
+    }
+
     const tempId = `temp_${Date.now()}`;
     const newItem = {
       id: tempId,
@@ -197,6 +221,8 @@ export default function ProductsTable({ clientId }: Props) {
 
     setItems((prev) => [newItem, ...prev]);
     setEdited((prev) => ({ ...prev, [tempId]: newItem }));
+
+    setTimeout(() => focusRow(tempId), 0);
   };
 
   const handleDelete = async (id: string) => {
@@ -288,20 +314,19 @@ export default function ProductsTable({ clientId }: Props) {
         .getPublicUrl(filePath);
       const imageUrl = data.publicUrl;
 
-      await updateItem(item.id, { image_url: imageUrl });
+      if (!item.id.startsWith("temp_")) {
+        await updateItem(item.id, { image_url: imageUrl });
+      }
 
       setItems((prev) =>
         prev.map((row) =>
           row.id === item.id ? { ...row, image_url: imageUrl } : row
         )
       );
-      setEdited((prev) => {
-        const copy = { ...prev };
-        if (copy[item.id]) {
-          copy[item.id] = { ...copy[item.id], image_url: imageUrl };
-        }
-        return copy;
-      });
+      setEdited((prev) => ({
+        ...prev,
+        [item.id]: { ...prev[item.id], image_url: imageUrl },
+      }));
       setImageAvailability((prev) => ({ ...prev, [item.id]: true }));
       notifySuccess("Imagen subida y producto actualizado");
     } catch (uploadError) {
@@ -433,6 +458,18 @@ export default function ProductsTable({ clientId }: Props) {
         Mostrando {filteredItems.length} de {items.length} productos
       </p>
 
+      {(searchTerm.trim() || categoryFilter) && (
+        <p className="text-xs text-zinc-500">
+          Filtros activos: {categoryFilter
+            ? `categoría ${
+                categories.find((category) => category.id === categoryFilter)
+                  ?.name ?? "seleccionada"
+              }`
+            : "todas las categorías"}
+          {searchTerm.trim() ? ` + búsqueda "${searchTerm.trim()}"` : ""}
+        </p>
+      )}
+
       {loadingItems && (
         <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-6 text-center text-sm text-zinc-500">
           Cargando productos...
@@ -460,6 +497,9 @@ export default function ProductsTable({ clientId }: Props) {
           return (
             <tr
               key={item.id}
+              ref={(node) => {
+                rowRefs.current[item.id] = node;
+              }}
               className={`${
                 highlightIds.includes(item.id)
                   ? "bg-emerald-100"
@@ -511,10 +551,7 @@ export default function ProductsTable({ clientId }: Props) {
                     />
                     <button
                       type="button"
-                      disabled={
-                        item.id.startsWith("temp_") ||
-                        uploadingIds.includes(item.id)
-                      }
+                      disabled={saving || uploadingIds.includes(item.id)}
                       onClick={() => fileInputRefs.current[item.id]?.click()}
                       className="px-2 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-500 disabled:bg-zinc-300 disabled:text-zinc-500"
                     >
