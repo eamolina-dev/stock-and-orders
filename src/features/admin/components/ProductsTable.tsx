@@ -47,17 +47,18 @@ export default function ProductsTable({ clientId }: Props) {
       setLoadingItems(true);
       try {
         const { rows } = await getItems(clientId, { from: 0, to: 9999 });
-        setItems(
-          rows.map((item) => ({
-            ...item,
-            price: item.price === null ? "" : String(item.price),
-          }))
-        );
+        const mappedRows = rows.map((item) => ({
+          ...item,
+          price: item.price === null ? "" : String(item.price),
+        }));
+        setItems(mappedRows);
         setEdited({});
+        return mappedRows;
       } catch (loadError) {
         console.error("Error loading products", loadError);
         setItems([]);
         notifyError("Error al cargar los datos");
+        return [];
       } finally {
         setLoadingItems(false);
       }
@@ -106,6 +107,22 @@ export default function ProductsTable({ clientId }: Props) {
     return Number.isNaN(n) ? null : n;
   };
 
+  const normalizeText = (value: string) =>
+    value
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .trim();
+
+  const parsePriceInput = (value: string) => value.replace(/\D/g, "");
+
+  const formatPriceDisplay = (value: string) => {
+    if (!value.trim()) return "";
+    const numericValue = Number(value);
+    if (Number.isNaN(numericValue)) return value;
+    return numericValue.toLocaleString("es-AR");
+  };
+
   const notifySuccess = (text: string) => {
     setError(null);
     setMessage(text);
@@ -136,6 +153,11 @@ export default function ProductsTable({ clientId }: Props) {
     );
   };
 
+
+  const handlePriceChange = (id: string, value: string) => {
+    handleChange(id, "price", parsePriceInput(value));
+  };
+
   const hasChanges = Object.keys(edited).length > 0;
   const hasErrors = items.some(
     (item) =>
@@ -149,11 +171,15 @@ export default function ProductsTable({ clientId }: Props) {
     setSaving(true);
     try {
       const affectedIds: string[] = [];
+      const createdNames: string[] = [];
 
       await Promise.all(
         Object.entries(edited).map(([id, data]) => {
           affectedIds.push(id);
           if (id.startsWith("temp_")) {
+            if (data.name?.trim()) {
+              createdNames.push(data.name.trim());
+            }
             return createItem({
               name: data.name ?? null,
               price: parseNumber((data.price as string) ?? "") ?? 0,
@@ -174,10 +200,20 @@ export default function ProductsTable({ clientId }: Props) {
         })
       );
 
-      notifySuccess("Cambios guardados");
-      setHighlightIds(affectedIds);
-      setTimeout(() => setHighlightIds([]), 1500);
-      load();
+      const reloadedItems = await load();
+      if (createdNames.length) {
+        notifySuccess("Producto creado");
+        const normalizedCreated = createdNames.map((name) => normalizeText(name));
+        const createdIds = reloadedItems
+          .filter((item) => normalizedCreated.includes(normalizeText(item.name ?? "")))
+          .map((item) => item.id);
+        setHighlightIds(createdIds);
+        setTimeout(() => setHighlightIds([]), 2000);
+      } else {
+        notifySuccess("Cambios guardados");
+        setHighlightIds(affectedIds);
+        setTimeout(() => setHighlightIds([]), 1500);
+      }
     } catch (saveError) {
       console.error("Error saving products", saveError);
       notifyError("Error al cargar los datos");
@@ -225,17 +261,21 @@ export default function ProductsTable({ clientId }: Props) {
     setTimeout(() => focusRow(tempId), 0);
   };
 
+  const handleCancelUnsaved = (id: string) => {
+    setItems((prev) => prev.filter((item) => item.id !== id));
+    setEdited((prev) => {
+      const copy = { ...prev };
+      delete copy[id];
+      return copy;
+    });
+  };
+
   const handleDelete = async (id: string) => {
     if (!window.confirm("¿Seguro que querés eliminar este producto?")) return;
 
     try {
       if (id.startsWith("temp_")) {
-        setItems((prev) => prev.filter((item) => item.id !== id));
-        setEdited((prev) => {
-          const copy = { ...prev };
-          delete copy[id];
-          return copy;
-        });
+        handleCancelUnsaved(id);
         return;
       }
 
@@ -246,26 +286,6 @@ export default function ProductsTable({ clientId }: Props) {
       console.error("Error deleting product", deleteError);
       notifyError("Error al cargar los datos");
     }
-  };
-
-  const getExtensionFromFile = (file: File): string | null => {
-    const mimeMap: Record<string, string> = {
-      "image/jpeg": "jpeg",
-      "image/png": "png",
-      "image/webp": "webp",
-      "image/gif": "gif",
-      "image/svg+xml": "svg",
-      "image/avif": "avif",
-      "image/bmp": "bmp",
-      "image/tiff": "tiff",
-      "image/x-icon": "ico",
-    };
-
-    if (file.type && mimeMap[file.type]) return mimeMap[file.type];
-
-    const splitName = file.name.split(".");
-    const byName = splitName.length > 1 ? splitName.pop()?.toLowerCase() : null;
-    return byName || null;
   };
 
   const slugify = (value: string) =>
@@ -293,13 +313,7 @@ export default function ProductsTable({ clientId }: Props) {
     try {
       const optimizedFile = await optimizeImage(file);
 
-      const extension =
-        getExtensionFromFile(optimizedFile) || getExtensionFromFile(file);
-      if (!extension) {
-        notifyError("No se pudo detectar la extensión del archivo");
-        return;
-      }
-
+      const extension = "webp";
       const fileName = `${slug}.${extension}`;
       const filePath = `new-images/${fileName}`;
 
@@ -372,12 +386,15 @@ export default function ProductsTable({ clientId }: Props) {
   }, [items]);
 
   const filteredItems = useMemo(() => {
-    const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+    const searchWords = normalizeText(searchTerm)
+      .split(/\s+/)
+      .filter(Boolean);
 
     return items.filter((item) => {
-      const matchesSearch = (item.name ?? "")
-        .toLowerCase()
-        .includes(normalizedSearchTerm);
+      const normalizedName = normalizeText(item.name ?? "");
+      const matchesSearch = searchWords.every((word) =>
+        normalizedName.includes(word)
+      );
       const matchesCategory =
         !categoryFilter || item.category_id === categoryFilter;
 
@@ -503,14 +520,21 @@ export default function ProductsTable({ clientId }: Props) {
               className={`${
                 highlightIds.includes(item.id)
                   ? "bg-emerald-100"
+                  : item.id.startsWith("temp_")
+                  ? "bg-amber-50"
                   : i % 2 === 0
                   ? "bg-zinc-50"
                   : "bg-zinc-100"
               } hover:bg-emerald-50 transition-colors ${
-                isEdited ? "ring-1 ring-amber-400" : ""
+                isEdited || item.id.startsWith("temp_") ? "ring-1 ring-amber-400" : ""
               }`}
             >
               <td className="px-3 py-2">
+                {item.id.startsWith("temp_") && (
+                  <span className="mb-1 inline-block rounded bg-amber-200 px-2 py-0.5 text-[10px] font-semibold text-amber-900">
+                    Nuevo
+                  </span>
+                )}
                 <input
                   value={item.name || ""}
                   onChange={(e) =>
@@ -520,15 +544,21 @@ export default function ProductsTable({ clientId }: Props) {
                 />
               </td>
               <td className="px-3 py-2">
-                <input
-                  value={item.price || ""}
-                  onChange={(e) =>
-                    handleChange(item.id, "price", e.target.value)
-                  }
-                  className={`w-24 bg-transparent outline-none px-2 py-1 rounded ${
+                <div
+                  className={`relative w-28 rounded ${
                     invalidPrice ? "ring-1 ring-red-500" : ""
                   }`}
-                />
+                >
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
+                    $
+                  </span>
+                  <input
+                    value={formatPriceDisplay(item.price || "")}
+                    inputMode="numeric"
+                    onChange={(e) => handlePriceChange(item.id, e.target.value)}
+                    className="w-full bg-transparent outline-none pl-7 pr-2 py-1 rounded"
+                  />
+                </div>
               </td>
               <td className="px-3 py-2">
                 <div className="flex flex-col gap-2">
@@ -539,7 +569,7 @@ export default function ProductsTable({ clientId }: Props) {
                         fileInputRefs.current[item.id] = node;
                       }}
                       type="file"
-                      accept="image/*"
+                      accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
@@ -593,12 +623,21 @@ export default function ProductsTable({ clientId }: Props) {
                 </select>
               </td>
               <td className="px-3 py-2">
-                <button
-                  onClick={() => handleDelete(item.id)}
-                  className="rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50"
-                >
-                  Eliminar
-                </button>
+                {item.id.startsWith("temp_") ? (
+                  <button
+                    onClick={() => handleCancelUnsaved(item.id)}
+                    className="rounded px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-200"
+                  >
+                    Cancelar
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleDelete(item.id)}
+                    className="rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50"
+                  >
+                    Eliminar
+                  </button>
+                )}
               </td>
             </tr>
           );
