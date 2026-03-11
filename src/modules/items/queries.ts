@@ -8,6 +8,16 @@ type GetItemsResult = {
   count: number;
 };
 
+const resolveProductImage = (imagePath: string | null): string | undefined => {
+  if (!imagePath) return undefined;
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+    return imagePath;
+  }
+
+  const { data } = supabase.storage.from("toma-images").getPublicUrl(imagePath);
+  return data.publicUrl;
+};
+
 export async function getItems(clientId: string, { from, to }: RangeInput): Promise<GetItemsResult> {
   const { data, error, count } = await supabase
     .from("products")
@@ -74,7 +84,7 @@ export async function getPublicMenu(clientId: string): Promise<ShopCategory[]> {
       id: product.id,
       name: product.name,
       price: product.price,
-      image: product.image_url ?? undefined,
+      image: resolveProductImage(product.image_url),
     });
     productsByCategory.set(product.category_id, categoryItems);
   }

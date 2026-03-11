@@ -293,44 +293,36 @@ export default function ProductsTable({ clientId }: Props) {
       return;
     }
 
-    const slug = slugify(item.name ?? "");
-    if (!slug) {
-      notifyError("El producto debe tener nombre para generar el archivo");
-      return;
-    }
+    const originalName = file.name.replace(/\.[^/.]+$/, "");
+    const slug = slugify(originalName) || "imagen";
 
     setUploadingIds((prev) => [...prev, item.id]);
     setUploadErrors((prev) => ({ ...prev, [item.id]: "" }));
     try {
       const optimizedFile = await optimizeImage(file);
 
-      const extension = "webp";
-      const fileName = `${slug}.${extension}`;
-      const filePath = `new-images/${fileName}`;
+      const randomId = Math.random().toString(36).slice(2, 6);
+      const fileName = `${slug}-${randomId}.webp`;
+      const filePath = `products/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from("toma-images")
-        .upload(filePath, optimizedFile, { upsert: true });
+        .upload(filePath, optimizedFile);
 
       if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage
-        .from("toma-images")
-        .getPublicUrl(filePath);
-      const imageUrl = data.publicUrl;
-
       if (!item.id.startsWith("temp_")) {
-        await updateItem(item.id, { image_url: imageUrl });
+        await updateItem(item.id, { image_url: filePath });
       }
 
       setItems((prev) =>
         prev.map((row) =>
-          row.id === item.id ? { ...row, image_url: imageUrl } : row
+          row.id === item.id ? { ...row, image_url: filePath } : row
         )
       );
       setEdited((prev) => ({
         ...prev,
-        [item.id]: { ...prev[item.id], image_url: imageUrl },
+        [item.id]: { ...prev[item.id], image_url: filePath },
       }));
       setImageAvailability((prev) => ({ ...prev, [item.id]: true }));
       notifySuccess("Imagen subida y producto actualizado");
@@ -346,13 +338,24 @@ export default function ProductsTable({ clientId }: Props) {
     }
   };
 
+
+  const getPublicImageUrl = (imagePath?: string | null) => {
+    if (!imagePath) return null;
+    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+      return imagePath;
+    }
+
+    const { data } = supabase.storage.from("toma-images").getPublicUrl(imagePath);
+    return data.publicUrl;
+  };
+
   useEffect(() => {
     let active = true;
 
     const verifyImageUrls = async () => {
       const entries = await Promise.all(
         items.map(async (item) => {
-          const imageUrl = item.image_url?.trim();
+          const imageUrl = getPublicImageUrl(item.image_url?.trim());
           if (!imageUrl) return [item.id, false] as const;
 
           try {
@@ -576,7 +579,7 @@ export default function ProductsTable({ clientId }: Props) {
 
                     {imageAvailability[item.id] && item.image_url && (
                       <a
-                        href={item.image_url}
+                        href={getPublicImageUrl(item.image_url) ?? "#"}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="px-2 py-1 text-xs rounded bg-zinc-200 text-zinc-700 hover:bg-zinc-300"
