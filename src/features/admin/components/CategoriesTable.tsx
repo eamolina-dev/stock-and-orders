@@ -18,6 +18,7 @@ export default function CategoriesTable({ clientId }: Props) {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [saveAttempted, setSaveAttempted] = useState(false);
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
   const originalItemsRef = useRef<Record<string, CategoryEntity>>({});
 
@@ -58,6 +59,7 @@ export default function CategoriesTable({ clientId }: Props) {
   };
 
   const handleChange = (id: string, value: string) => {
+    setSaveAttempted(false);
     setEdited((prev) => ({ ...prev, [id]: { ...prev[id], name: value } }));
     setItems((prev) => prev.map((item) => (item.id === id ? { ...item, name: value } : item)));
   };
@@ -66,6 +68,7 @@ export default function CategoriesTable({ clientId }: Props) {
   const hasErrors = items.some((item) => !(item.name ?? "").trim());
 
   const handleSave = async () => {
+    setSaveAttempted(true);
     if (hasErrors) return;
 
     setSaving(true);
@@ -80,6 +83,7 @@ export default function CategoriesTable({ clientId }: Props) {
       );
 
       notify("Cambios guardados");
+      setSaveAttempted(false);
       load();
     } catch (saveError) {
       console.error("Error saving categories", saveError);
@@ -90,6 +94,7 @@ export default function CategoriesTable({ clientId }: Props) {
   };
 
   const handleAddRow = () => {
+    setSaveAttempted(false);
     setSearchTerm("");
     setPage(0);
 
@@ -250,7 +255,7 @@ export default function CategoriesTable({ clientId }: Props) {
 
       {message && <InlineAlert tone="success" message={message} />}
       {error && <InlineAlert tone="error" message={error} />}
-      {hasErrors && <div className="text-sm text-red-500">Todas las categorías deben tener nombre</div>}
+      {hasErrors && saveAttempted && <div className="text-sm text-red-500">Todas las categorías deben tener nombre</div>}
       <p className="text-sm text-zinc-500">Mostrando {filteredItems.length} de {items.length} categorías</p>
       {loading && (
         <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-6 text-center text-sm text-zinc-500">
