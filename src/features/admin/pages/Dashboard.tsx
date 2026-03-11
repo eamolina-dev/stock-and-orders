@@ -35,7 +35,7 @@ export default function AdminDashboard() {
     } catch (signOutError) {
       console.error("Unexpected sign out error", signOutError);
     } finally {
-      navigate(`/shop/${clientSlug}`, { replace: true });
+      navigate(`/${clientSlug}`, { replace: true });
     }
   };
 

@@ -11,9 +11,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/toma/shop" replace />} />
+        <Route path="/" element={<Navigate to="/toma" replace />} />
 
-        <Route path="/:clientSlug/shop" element={<ClientShopLayout />}>
+        <Route path="/:clientSlug" element={<ClientShopLayout />}>
           <Route index element={<ShopHome />} />
         </Route>
 
@@ -24,7 +24,7 @@ export default function App() {
           <Route index element={<AdminDashboard />} />
         </Route>
 
-        <Route path="/:clientSlug/admin/shop" element={<ProtectedRoute />}>
+        <Route path="/:clientSlug/admin" element={<ProtectedRoute />}>
           <Route element={<ClientShopLayout />}>
             <Route index element={<ShopHome adminMode />} />
           </Route>

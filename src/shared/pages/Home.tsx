@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
 
 export const Home = () => {
-  return <Navigate to="/toma/shop" replace />;
+  return <Navigate to="/toma" replace />;
 };

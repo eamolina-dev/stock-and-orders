@@ -5,7 +5,7 @@ type Props = {
 };
 
 export function ClientNotFound({ clientSlug }: Props) {
-  const shopUrl = clientSlug ? `/${clientSlug}/shop` : "/";
+  const shopUrl = clientSlug ? `/${clientSlug}` : "/";
 
   return (
     <div className="min-h-[40vh] p-6 flex flex-col items-center justify-center text-center gap-2">

@@ -104,7 +104,7 @@ export default function AdminLogin() {
       <div className="mx-auto w-full max-w-md">
         <button
           type="button"
-          onClick={() => navigate(`/shop/${clientSlug}`)}
+          onClick={() => navigate(`/${clientSlug}`)}
           className="mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-300/70 bg-white/80 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-white"
         >
           <ArrowLeft size={16} />
@@ -158,7 +158,7 @@ export default function AdminLogin() {
 
           <p className="muted mt-6 text-center text-xs">
             ¿Volver al menú público?{" "}
-            <Link className="accent font-semibold" to={`/${clientSlug}/shop`}>
+            <Link className="accent font-semibold" to={`/${clientSlug}`}>
               Ir al inicio
             </Link>
           </p>
