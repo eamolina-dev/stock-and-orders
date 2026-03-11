@@ -31,6 +31,7 @@ export default function ProductsTable({ clientId }: Props) {
   const [highlightIds, setHighlightIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [page, setPage] = useState(0);
+  const [priceFocusId, setPriceFocusId] = useState<string | null>(null);
   const [uploadingIds, setUploadingIds] = useState<string[]>([]);
   const [loadingItems, setLoadingItems] = useState(true);
   const [loadingCategories, setLoadingCategories] = useState(true);
@@ -111,13 +112,13 @@ export default function ProductsTable({ clientId }: Props) {
     value
       .toLowerCase()
       .normalize("NFD")
-      .replace(/[̀-ͯ]/g, "")
+      .replace(/[\u0300-\u036f]/g, "")
       .trim();
 
   const parsePriceInput = (value: string) => value.replace(/\D/g, "");
 
-  const formatPriceDisplay = (value: string) => {
-    if (!value.trim()) return "";
+  const formatPriceDisplay = (value: string, showDash = false) => {
+    if (!value.trim()) return showDash ? "—" : "";
     const numericValue = Number(value);
     if (Number.isNaN(numericValue)) return value;
     return numericValue.toLocaleString("es-AR");
@@ -544,21 +545,44 @@ export default function ProductsTable({ clientId }: Props) {
                 />
               </td>
               <td className="px-3 py-2">
-                <div
-                  className={`relative w-28 rounded ${
-                    invalidPrice ? "ring-1 ring-red-500" : ""
-                  }`}
-                >
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
-                    $
-                  </span>
-                  <input
-                    value={formatPriceDisplay(item.price || "")}
-                    inputMode="numeric"
-                    onChange={(e) => handlePriceChange(item.id, e.target.value)}
-                    className="w-full bg-transparent outline-none pl-7 pr-2 py-1 rounded"
-                  />
-                </div>
+                {item.price ? (
+                  <div
+                    className={`relative w-28 rounded ${
+                      invalidPrice ? "ring-1 ring-red-500" : ""
+                    }`}
+                  >
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
+                      $
+                    </span>
+                    <input
+                      value={formatPriceDisplay(item.price || "")}
+                      inputMode="numeric"
+                      onChange={(e) => handlePriceChange(item.id, e.target.value)}
+                      onFocus={() => setPriceFocusId(item.id)}
+                      onBlur={() => setPriceFocusId((current) => (current === item.id ? null : current))}
+                      className="w-full bg-transparent outline-none pl-7 pr-2 py-1 rounded"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className={`relative w-28 rounded ${
+                      invalidPrice ? "ring-1 ring-red-500" : ""
+                    }`}
+                  >
+                    <input
+                      value={
+                        priceFocusId === item.id
+                          ? ""
+                          : formatPriceDisplay(item.price || "", true)
+                      }
+                      inputMode="numeric"
+                      onChange={(e) => handlePriceChange(item.id, e.target.value)}
+                      onFocus={() => setPriceFocusId(item.id)}
+                      onBlur={() => setPriceFocusId((current) => (current === item.id ? null : current))}
+                      className="w-full bg-transparent outline-none px-2 py-1 rounded text-zinc-500"
+                    />
+                  </div>
+                )}
               </td>
               <td className="px-3 py-2">
                 <div className="flex flex-col gap-2">

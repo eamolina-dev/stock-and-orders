@@ -39,7 +39,7 @@ const ShopItemCardComponent = ({ item, showAddButton = true }: Props) => {
 
   return (
     <div className="bg-white rounded-2xl border shadow-sm overflow-hidden text-slate-900 h-full flex flex-col">
-      <div className="aspect-square bg-gray-100">
+      <div className="aspect-square bg-gray-100 overflow-hidden">
         {item.image && !imageError ? (
           <img
             src={item.image}
@@ -51,7 +51,7 @@ const ShopItemCardComponent = ({ item, showAddButton = true }: Props) => {
               e.currentTarget.style.display = "none";
               setImageError(true);
             }}
-            className={`w-full h-full object-cover transition-opacity duration-300 ${
+            className={`w-full h-full object-cover object-center transition-opacity duration-300 ${
               loaded ? "opacity-100" : "opacity-0"
             }`}
           />

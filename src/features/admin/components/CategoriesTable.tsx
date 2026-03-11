@@ -192,10 +192,17 @@ export default function CategoriesTable({ clientId }: Props) {
               return (
                 <tr
                   key={item.id}
-                  className={`${i % 2 === 0 ? "bg-zinc-50" : "bg-zinc-100"} hover:bg-emerald-50 transition-colors ${isEdited ? "ring-1 ring-amber-400" : ""}`}
+                  className={`${item.id.startsWith("temp_") ? "bg-amber-50" : i % 2 === 0 ? "bg-zinc-50" : "bg-zinc-100"} hover:bg-emerald-50 transition-colors ${isEdited || item.id.startsWith("temp_") ? "ring-1 ring-amber-400" : ""}`}
                 >
                   <td className="px-3 py-2">
-                    <input value={item.name || ""} onChange={(e) => handleChange(item.id, e.target.value)} className="w-full bg-transparent outline-none px-2 py-1 rounded" />
+                    <div className="relative">
+                      {item.id.startsWith("temp_") && (
+                        <span className="pointer-events-none absolute -top-2 left-2 rounded bg-amber-200 px-2 py-0.5 text-[10px] font-semibold text-amber-900">
+                          Nuevo
+                        </span>
+                      )}
+                      <input value={item.name || ""} onChange={(e) => handleChange(item.id, e.target.value)} className="w-full bg-transparent outline-none px-2 py-1 rounded" />
+                    </div>
                   </td>
 
                   <td className="px-3 py-2">
