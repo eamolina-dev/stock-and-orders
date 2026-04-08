@@ -61,11 +61,17 @@ export async function deleteItem(id: string): Promise<void> {
 export async function getPublicMenu(clientId: string): Promise<ShopCategory[]> {
   const [{ data: categories, error: categoriesError }, { data: products, error: productsError }] =
     await Promise.all([
-      supabase.from("categories").select("id, name").eq("client_id", clientId).order("name"),
+      supabase
+        .from("categories")
+        .select("id, name, is_default, display_order")
+        .eq("client_id", clientId)
+        .order("display_order", { ascending: true, nullsFirst: false })
+        .order("name"),
       supabase
         .from("products")
         .select("id, name, price, image_url, category_id")
         .eq("client_id", clientId)
+        .eq("is_visible", true)
         .order("name"),
     ]);
 
@@ -94,6 +100,14 @@ export async function getPublicMenu(clientId: string): Promise<ShopCategory[]> {
       id: category.id,
       title: category.name ?? "Sin nombre",
       items: productsByCategory.get(category.id) ?? [],
+      isDefault: category.is_default ?? false,
+      displayOrder: category.display_order ?? Number.MAX_SAFE_INTEGER,
     }))
+    .sort((a, b) => {
+      if (a.displayOrder !== b.displayOrder) {
+        return a.displayOrder - b.displayOrder;
+      }
+      return a.title.localeCompare(b.title);
+    })
     .filter((category) => category.items.length > 0);
 }

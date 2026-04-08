@@ -180,6 +180,7 @@ export default function ProductsTable({ clientId }: Props) {
               price: parseNumber((data.price as string) ?? "") ?? 0,
               image_url: data.image_url ?? null,
               category_id: data.category_id ?? null,
+              is_visible: true,
               client_id: clientId,
             });
           }
@@ -297,6 +298,7 @@ export default function ProductsTable({ clientId }: Props) {
           price: parseNumber(row.price) ?? 0,
           image_url: row.image_url ?? null,
           category_id: row.category_id ?? null,
+          is_visible: true,
           client_id: clientId,
         });
         notifySuccess("Producto creado");
@@ -348,6 +350,24 @@ export default function ProductsTable({ clientId }: Props) {
       notifySuccess("Producto eliminado");
     } catch (deleteError) {
       console.error("Error deleting product", deleteError);
+      notifyError("Error al cargar los datos");
+    }
+  };
+
+  const handleToggleVisibility = async (item: ItemUI) => {
+    if (item.id.startsWith("temp_")) return;
+
+    const currentVisibility = item.is_visible ?? true;
+    try {
+      await updateItem(item.id, { is_visible: !currentVisibility });
+      setItems((prev) =>
+        prev.map((row) =>
+          row.id === item.id ? { ...row, is_visible: !currentVisibility } : row
+        )
+      );
+      notifySuccess(!currentVisibility ? "Producto visible" : "Producto oculto");
+    } catch (toggleError) {
+      console.error("Error updating product visibility", toggleError);
       notifyError("Error al cargar los datos");
     }
   };
@@ -694,12 +714,20 @@ export default function ProductsTable({ clientId }: Props) {
                     Cancelar
                   </button>
                 ) : (
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    className="rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50"
-                  >
-                    Eliminar
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleToggleVisibility(item)}
+                      className="rounded px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-200"
+                    >
+                      {(item.is_visible ?? true) ? "Ocultar" : "Mostrar"}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(item.id)}
+                      className="rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
                 )}
               </td>
             </tr>

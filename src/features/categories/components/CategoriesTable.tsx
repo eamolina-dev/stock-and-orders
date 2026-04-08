@@ -58,10 +58,43 @@ export default function CategoriesTable({ clientId }: Props) {
     setTimeout(() => setError(null), 3000);
   };
 
-  const handleChange = (id: string, value: string) => {
+  const handleFieldChange = (
+    id: string,
+    field: keyof CategoryEntity,
+    value: string | number | boolean | null
+  ) => {
     setSaveAttempted(false);
-    setEdited((prev) => ({ ...prev, [id]: { ...prev[id], name: value } }));
-    setItems((prev) => prev.map((item) => (item.id === id ? { ...item, name: value } : item)));
+    setEdited((prev) => ({ ...prev, [id]: { ...prev[id], [field]: value } }));
+    setItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+    );
+  };
+
+  const handleDefaultChange = (id: string, checked: boolean) => {
+    setSaveAttempted(false);
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, is_default: checked } : { ...item, is_default: false }
+      )
+    );
+    setEdited((prev) => {
+      const updates: Record<string, Partial<CategoryEntity>> = { ...prev };
+      for (const item of items) {
+        const nextValue = item.id === id ? checked : false;
+        const originalValue = originalItemsRef.current[item.id]?.is_default ?? false;
+        if (nextValue !== originalValue) {
+          updates[item.id] = { ...updates[item.id], is_default: nextValue };
+        } else if (updates[item.id]) {
+          const nextItemUpdate = { ...updates[item.id] };
+          delete nextItemUpdate.is_default;
+          updates[item.id] = nextItemUpdate;
+          if (Object.keys(updates[item.id]).length === 0) {
+            delete updates[item.id];
+          }
+        }
+      }
+      return updates;
+    });
   };
 
   const hasChanges = Object.keys(edited).length > 0;
@@ -76,9 +109,18 @@ export default function CategoriesTable({ clientId }: Props) {
       await Promise.all(
         Object.entries(edited).map(([id, data]) => {
           if (id.startsWith("temp_")) {
-            return createCategory({ name: data.name ?? null, client_id: clientId });
+            return createCategory({
+              name: data.name ?? null,
+              display_order: (data.display_order as number | null | undefined) ?? null,
+              is_default: (data.is_default as boolean | null | undefined) ?? false,
+              client_id: clientId,
+            });
           }
-          return updateCategory(id, { name: data.name ?? null });
+          return updateCategory(id, {
+            ...(data.name !== undefined && { name: data.name ?? null }),
+            ...(data.display_order !== undefined && { display_order: data.display_order as number | null }),
+            ...(data.is_default !== undefined && { is_default: data.is_default as boolean | null }),
+          });
         })
       );
 
@@ -109,7 +151,12 @@ export default function CategoriesTable({ clientId }: Props) {
     }
 
     const tempId = `temp_${Date.now()}`;
-    const newItem = { id: tempId, name: "" } as CategoryEntity;
+    const newItem = {
+      id: tempId,
+      name: "",
+      display_order: null,
+      is_default: false,
+    } as CategoryEntity;
 
     setItems((prev) => [newItem, ...prev]);
     setEdited((prev) => ({ ...prev, [tempId]: newItem }));
@@ -155,10 +202,23 @@ export default function CategoriesTable({ clientId }: Props) {
     setSaving(true);
     try {
       if (id.startsWith("temp_")) {
-        await createCategory({ name: row.name ?? null, client_id: clientId });
+        await createCategory({
+          name: row.name ?? null,
+          display_order: row.display_order ?? null,
+          is_default: row.is_default ?? false,
+          client_id: clientId,
+        });
         notify("Cambios guardados");
       } else {
-        await updateCategory(id, { name: edited[id].name ?? null });
+        await updateCategory(id, {
+          ...(edited[id].name !== undefined && { name: edited[id].name ?? null }),
+          ...(edited[id].display_order !== undefined && {
+            display_order: edited[id].display_order as number | null,
+          }),
+          ...(edited[id].is_default !== undefined && {
+            is_default: edited[id].is_default as boolean | null,
+          }),
+        });
         notify("Cambios guardados");
       }
       await load();
@@ -269,6 +329,8 @@ export default function CategoriesTable({ clientId }: Props) {
             columns={
               <>
                 <th className="text-left px-3 py-2">Nombre</th>
+                <th className="text-left px-3 py-2">Orden</th>
+                <th className="text-left px-3 py-2">Por defecto</th>
                 <th className="px-3 py-2 w-24">Acciones</th>
               </>
             }
@@ -290,8 +352,32 @@ export default function CategoriesTable({ clientId }: Props) {
                           Nuevo
                         </span>
                       )}
-                      <input value={item.name || ""} onChange={(e) => handleChange(item.id, e.target.value)} onKeyDown={(e) => handleRowKeyDown(e, item.id)} className="w-full bg-transparent outline-none px-2 py-1 rounded" />
+                      <input value={item.name || ""} onChange={(e) => handleFieldChange(item.id, "name", e.target.value)} onKeyDown={(e) => handleRowKeyDown(e, item.id)} className="w-full bg-transparent outline-none px-2 py-1 rounded" />
                     </div>
+                  </td>
+                  <td className="px-3 py-2">
+                    <input
+                      type="number"
+                      value={item.display_order ?? ""}
+                      onChange={(e) =>
+                        handleFieldChange(
+                          item.id,
+                          "display_order",
+                          e.target.value === "" ? null : Number(e.target.value)
+                        )
+                      }
+                      className="w-24 bg-transparent outline-none px-2 py-1 rounded"
+                    />
+                  </td>
+                  <td className="px-3 py-2">
+                    <label className="inline-flex items-center gap-2 text-xs">
+                      <input
+                        type="checkbox"
+                        checked={item.is_default ?? false}
+                        onChange={(e) => handleDefaultChange(item.id, e.target.checked)}
+                      />
+                      Activa
+                    </label>
                   </td>
 
                   <td className="px-3 py-2">
@@ -310,7 +396,7 @@ export default function CategoriesTable({ clientId }: Props) {
             })}
             {!paginatedItems.length && (
               <tr>
-                <td colSpan={2} className="px-3 py-10 text-center text-sm text-zinc-500">
+                <td colSpan={4} className="px-3 py-10 text-center text-sm text-zinc-500">
                   {items.length === 0 ? "No hay categorías aún" : "No se encontraron categorías"}
                 </td>
               </tr>

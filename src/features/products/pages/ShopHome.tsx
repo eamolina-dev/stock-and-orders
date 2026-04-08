@@ -66,10 +66,7 @@ export default function ShopHome({ adminMode = false }: HomeProps) {
 
         const safeMenu = parsedMenu ?? [];
 
-        const defaultCategory = safeMenu.find(
-          (category) =>
-            normalizeText(category.title) === normalizeText("Cervezas")
-        );
+        const defaultCategory = safeMenu.find((category) => category.isDefault);
         setSelectedCategoryId(defaultCategory?.id ?? safeMenu[0]?.id ?? null);
       } catch (menuError) {
         console.error("Error loading public menu", menuError);

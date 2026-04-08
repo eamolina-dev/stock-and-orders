@@ -15,4 +15,6 @@ export type ShopCategory = {
   id: string;
   title: string;
   items: ShopItem[];
+  isDefault?: boolean;
+  displayOrder?: number;
 };
