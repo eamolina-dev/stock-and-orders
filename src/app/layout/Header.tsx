@@ -10,7 +10,7 @@ export const Header = ({ name, description, image, style }: Props) => {
 
   return (
     <header
-      className={`w-full text-center px-4 bg-black/25 border-b border-white/10 ${style} ${
+      className={`w-full text-center px-4 bg-black/75 border-b border-white/10 ${style} ${
         hasImage ? "relative h-56 md:h-72 overflow-hidden text-white" : "py-12"
       }`}
     >
