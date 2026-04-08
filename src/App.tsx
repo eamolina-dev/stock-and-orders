@@ -1,11 +1,11 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
-import { ProtectedRoute } from "./features/admin/components/ProtectedRoute";
-import AdminEntry from "./features/admin/components/AdminEntry";
-import AdminDashboard from "./features/admin/pages/Dashboard";
-import AdminLogin from "./features/admin/pages/Login";
-import { ClientShopLayout } from "./features/shop/layouts/ClientShopLayout";
-import ShopHome from "./features/shop/pages/ShopHome";
+import { ProtectedRoute } from "./features/auth/components/ProtectedRoute";
+import AdminEntry from "./features/auth/components/AdminEntry";
+import AdminDashboard from "./app/pages/admin/Dashboard";
+import AdminLogin from "./app/pages/admin/Login";
+import { ClientShopLayout } from "./app/layout/ClientShopLayout";
+import ShopHome from "./features/products/pages/ShopHome";
 
 export default function App() {
   return (
