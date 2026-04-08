@@ -287,6 +287,11 @@ export default function CategoriesTable({ clientId }: Props) {
     return filteredItems.slice(from, to);
   }, [filteredItems, page]);
 
+  const orderOptions = useMemo(
+    () => Array.from({ length: Math.max(items.length, 1) }, (_, index) => index + 1),
+    [items.length]
+  );
+
   return (
     <div className="p-4 flex flex-col gap-4 min-w-[800px]">
       <div className="flex items-center justify-between gap-2">
@@ -356,8 +361,7 @@ export default function CategoriesTable({ clientId }: Props) {
                     </div>
                   </td>
                   <td className="px-3 py-2">
-                    <input
-                      type="number"
+                    <select
                       value={item.display_order ?? ""}
                       onChange={(e) =>
                         handleFieldChange(
@@ -367,7 +371,14 @@ export default function CategoriesTable({ clientId }: Props) {
                         )
                       }
                       className="w-24 bg-transparent outline-none px-2 py-1 rounded"
-                    />
+                    >
+                      <option value="">-</option>
+                      {orderOptions.map((value) => (
+                        <option key={value} value={value}>
+                          {value}
+                        </option>
+                      ))}
+                    </select>
                   </td>
                   <td className="px-3 py-2">
                     <label className="inline-flex items-center gap-2 text-xs">
