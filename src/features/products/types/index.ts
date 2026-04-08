@@ -12,6 +12,7 @@ export type ShopItem = {
 };
 
 export type ShopCategory = {
+  [x: string]: unknown;
   id: string;
   title: string;
   items: ShopItem[];

@@ -124,11 +124,7 @@ export default function ShopHome({ adminMode = false }: HomeProps) {
       <div className={`menu-theme ${themeClass} min-h-screen relative`}>
         {adminMode && <AdminNavbar clientSlug={clientSlug} variant="shop" />}
 
-        <Header
-          name={client.name ?? ""}
-          description="Casa de bebidas"
-          style={headerStyle}
-        />
+        <Header name={client.name ?? ""} style={headerStyle} />
 
         <div className="sticky top-0 z-30 bg-[var(--bg)]/80 backdrop-blur border-b">
           <div className="shop-category-scroll flex gap-2 overflow-x-auto px-4 py-3 max-w-2xl mx-auto">

@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DataTable } from "../../../shared/components/DataTable";
 import { TablePagination } from "../../../shared/components/TablePagination";
-import { createCategory, deleteCategory, getCategories, updateCategory } from "../../../features/categories/api/queries";
+import {
+  createCategory,
+  deleteCategory,
+  getCategories,
+  updateCategory,
+} from "../../../features/categories/api/queries";
 import { InlineAlert } from "../../../shared/components/InlineAlert";
 import type { CategoryEntity } from "../../../features/categories/types";
 
@@ -11,7 +16,9 @@ const PAGE_SIZE = 10;
 
 export default function CategoriesTable({ clientId }: Props) {
   const [items, setItems] = useState<CategoryEntity[]>([]);
-  const [edited, setEdited] = useState<Record<string, Partial<CategoryEntity>>>({});
+  const [edited, setEdited] = useState<Record<string, Partial<CategoryEntity>>>(
+    {}
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -74,14 +81,17 @@ export default function CategoriesTable({ clientId }: Props) {
     setSaveAttempted(false);
     setItems((prev) =>
       prev.map((item) =>
-        item.id === id ? { ...item, is_default: checked } : { ...item, is_default: false }
+        item.id === id
+          ? { ...item, is_default: checked }
+          : { ...item, is_default: false }
       )
     );
     setEdited((prev) => {
       const updates: Record<string, Partial<CategoryEntity>> = { ...prev };
       for (const item of items) {
         const nextValue = item.id === id ? checked : false;
-        const originalValue = originalItemsRef.current[item.id]?.is_default ?? false;
+        const originalValue =
+          originalItemsRef.current[item.id]?.is_default ?? false;
         if (nextValue !== originalValue) {
           updates[item.id] = { ...updates[item.id], is_default: nextValue };
         } else if (updates[item.id]) {
@@ -111,15 +121,21 @@ export default function CategoriesTable({ clientId }: Props) {
           if (id.startsWith("temp_")) {
             return createCategory({
               name: data.name ?? null,
-              display_order: (data.display_order as number | null | undefined) ?? null,
-              is_default: (data.is_default as boolean | null | undefined) ?? false,
+              display_order:
+                (data.display_order as number | null | undefined) ?? null,
+              is_default:
+                (data.is_default as boolean | null | undefined) ?? false,
               client_id: clientId,
             });
           }
           return updateCategory(id, {
             ...(data.name !== undefined && { name: data.name ?? null }),
-            ...(data.display_order !== undefined && { display_order: data.display_order as number | null }),
-            ...(data.is_default !== undefined && { is_default: data.is_default as boolean | null }),
+            ...(data.display_order !== undefined && {
+              display_order: data.display_order as number | null,
+            }),
+            ...(data.is_default !== undefined && {
+              is_default: data.is_default as boolean | null,
+            }),
           });
         })
       );
@@ -144,7 +160,9 @@ export default function CategoriesTable({ clientId }: Props) {
     if (existingUnsaved) {
       const targetRow = rowRefs.current[existingUnsaved.id];
       targetRow?.scrollIntoView({ behavior: "smooth", block: "center" });
-      const input = targetRow?.querySelector("input") as HTMLInputElement | null;
+      const input = targetRow?.querySelector(
+        "input"
+      ) as HTMLInputElement | null;
       input?.focus();
       notifyError("Tenés cambios sin guardar");
       return;
@@ -164,7 +182,9 @@ export default function CategoriesTable({ clientId }: Props) {
     setTimeout(() => {
       const targetRow = rowRefs.current[tempId];
       targetRow?.scrollIntoView({ behavior: "smooth", block: "center" });
-      const input = targetRow?.querySelector("input") as HTMLInputElement | null;
+      const input = targetRow?.querySelector(
+        "input"
+      ) as HTMLInputElement | null;
       input?.focus();
     }, 0);
   };
@@ -187,7 +207,9 @@ export default function CategoriesTable({ clientId }: Props) {
     const originalItem = originalItemsRef.current[id];
     if (!originalItem) return;
 
-    setItems((prev) => prev.map((item) => (item.id === id ? originalItem : item)));
+    setItems((prev) =>
+      prev.map((item) => (item.id === id ? originalItem : item))
+    );
     setEdited((prev) => {
       const copy = { ...prev };
       delete copy[id];
@@ -211,7 +233,9 @@ export default function CategoriesTable({ clientId }: Props) {
         notify("Cambios guardados");
       } else {
         await updateCategory(id, {
-          ...(edited[id].name !== undefined && { name: edited[id].name ?? null }),
+          ...(edited[id].name !== undefined && {
+            name: edited[id].name ?? null,
+          }),
           ...(edited[id].display_order !== undefined && {
             display_order: edited[id].display_order as number | null,
           }),
@@ -230,7 +254,10 @@ export default function CategoriesTable({ clientId }: Props) {
     }
   };
 
-  const handleRowKeyDown = (event: React.KeyboardEvent<HTMLInputElement>, id: string) => {
+  const handleRowKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>,
+    id: string
+  ) => {
     if (event.key === "Enter") {
       event.preventDefault();
       void handleSaveRow(id);
@@ -288,7 +315,11 @@ export default function CategoriesTable({ clientId }: Props) {
   }, [filteredItems, page]);
 
   const orderOptions = useMemo(
-    () => Array.from({ length: Math.max(items.length, 1) }, (_, index) => index + 1),
+    () =>
+      Array.from(
+        { length: Math.max(items.length, 1) },
+        (_, index) => index + 1
+      ),
     [items.length]
   );
 
@@ -307,114 +338,159 @@ export default function CategoriesTable({ clientId }: Props) {
           disabled={saving || !hasChanges || hasErrors}
           onClick={handleSave}
           className={`px-4 py-2 text-sm rounded-md transition ${
-            hasChanges && !hasErrors ? "bg-emerald-600 hover:bg-emerald-500 text-white" : "bg-zinc-200 text-zinc-400 cursor-not-allowed"
+            hasChanges && !hasErrors
+              ? "bg-emerald-600 hover:bg-emerald-500 text-white"
+              : "bg-zinc-200 text-zinc-400 cursor-not-allowed"
           }`}
         >
           Guardar
         </button>
       </div>
 
-      <button onClick={handleAddRow} className="self-start px-4 py-2 text-sm rounded-md bg-zinc-900 text-white hover:bg-zinc-800">
+      <button
+        onClick={handleAddRow}
+        className="self-start px-4 py-2 text-sm rounded-md bg-zinc-900 text-white hover:bg-zinc-800"
+      >
         + Agregar categoría
       </button>
 
       {message && <InlineAlert tone="success" message={message} />}
       {error && <InlineAlert tone="error" message={error} />}
-      {hasErrors && saveAttempted && <div className="text-sm text-red-500">Todas las categorías deben tener nombre</div>}
-      <p className="text-sm text-zinc-500">Mostrando {filteredItems.length} de {items.length} categorías</p>
+      {hasErrors && saveAttempted && (
+        <div className="text-sm text-red-500">
+          Todas las categorías deben tener nombre
+        </div>
+      )}
+      <p className="text-sm text-zinc-500">
+        Mostrando {filteredItems.length} de {items.length} categorías
+      </p>
       {loading && (
         <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-6 text-center text-sm text-zinc-500">
           Cargando categorías...
         </div>
       )}
 
-      {!loading && <div className="border border-zinc-200 rounded-lg bg-white">
-        <div className="overflow-x-auto">
-          <DataTable
-            columns={
-              <>
-                <th className="text-left px-3 py-2">Nombre</th>
-                <th className="text-left px-3 py-2">Orden</th>
-                <th className="text-left px-3 py-2">Por defecto</th>
-                <th className="px-3 py-2 w-24">Acciones</th>
-              </>
-            }
-          >
-            {paginatedItems.map((item, i) => {
-              const isEdited = edited[item.id];
-              return (
-                <tr
-                  key={item.id}
-                  ref={(node) => {
-                    rowRefs.current[item.id] = node;
-                  }}
-                  className={`${item.id.startsWith("temp_") ? "bg-amber-50" : i % 2 === 0 ? "bg-zinc-50" : "bg-zinc-100"} hover:bg-emerald-50 transition-colors ${isEdited || item.id.startsWith("temp_") ? "ring-1 ring-amber-400" : ""}`}
-                >
-                  <td className="px-3 py-2">
-                    <div className="relative">
-                      {item.id.startsWith("temp_") && (
-                        <span className="pointer-events-none absolute -top-2 left-2 rounded bg-amber-200 px-2 py-0.5 text-[10px] font-semibold text-amber-900">
-                          Nuevo
-                        </span>
-                      )}
-                      <input value={item.name || ""} onChange={(e) => handleFieldChange(item.id, "name", e.target.value)} onKeyDown={(e) => handleRowKeyDown(e, item.id)} className="w-full bg-transparent outline-none px-2 py-1 rounded" />
-                    </div>
-                  </td>
-                  <td className="px-3 py-2">
-                    <select
-                      value={item.display_order ?? ""}
-                      onChange={(e) =>
-                        handleFieldChange(
-                          item.id,
-                          "display_order",
-                          e.target.value === "" ? null : Number(e.target.value)
-                        )
-                      }
-                      className="w-24 bg-transparent outline-none px-2 py-1 rounded"
-                    >
-                      <option value="">-</option>
-                      {orderOptions.map((value) => (
-                        <option key={value} value={value}>
-                          {value}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="px-3 py-2">
-                    <label className="inline-flex items-center gap-2 text-xs">
-                      <input
-                        type="checkbox"
-                        checked={item.is_default ?? false}
-                        onChange={(e) => handleDefaultChange(item.id, e.target.checked)}
-                      />
-                      Activa
-                    </label>
-                  </td>
+      {!loading && (
+        <div className="border border-zinc-200 rounded-lg bg-white">
+          <div className="overflow-x-auto">
+            <DataTable
+              columns={
+                <>
+                  <th className="text-left px-3 py-2">Nombre</th>
+                  <th className="text-left px-3 py-2">Orden</th>
+                  <th className="text-left px-3 py-2">Por defecto</th>
+                  <th className="px-3 py-2 w-24">Acciones</th>
+                </>
+              }
+            >
+              {paginatedItems.map((item, i) => {
+                const isEdited = edited[item.id];
+                return (
+                  <tr
+                    key={item.id}
+                    ref={(node) => {
+                      rowRefs.current[item.id] = node;
+                    }}
+                    className={`${
+                      item.id.startsWith("temp_")
+                        ? "bg-amber-50"
+                        : i % 2 === 0
+                        ? "bg-zinc-50"
+                        : "bg-zinc-100"
+                    } hover:bg-emerald-50 transition-colors ${
+                      isEdited || item.id.startsWith("temp_")
+                        ? "ring-1 ring-amber-400"
+                        : ""
+                    }`}
+                  >
+                    <td className="px-3 py-2">
+                      <div className="relative">
+                        {item.id.startsWith("temp_") && (
+                          <span className="pointer-events-none absolute -top-2 left-2 rounded bg-amber-200 px-2 py-0.5 text-[10px] font-semibold text-amber-900">
+                            Nuevo
+                          </span>
+                        )}
+                        <input
+                          value={item.name || ""}
+                          onChange={(e) =>
+                            handleFieldChange(item.id, "name", e.target.value)
+                          }
+                          onKeyDown={(e) => handleRowKeyDown(e, item.id)}
+                          className="w-full bg-transparent outline-none px-2 py-1 rounded"
+                        />
+                      </div>
+                    </td>
+                    <td className="px-3 py-2">
+                      <select
+                        value={item.display_order ?? ""}
+                        onChange={(e) =>
+                          handleFieldChange(
+                            item.id,
+                            "display_order",
+                            e.target.value === ""
+                              ? null
+                              : Number(e.target.value)
+                          )
+                        }
+                        className="w-24 bg-transparent outline-none px-2 py-1 rounded"
+                      >
+                        <option value="">-</option>
+                        {orderOptions.map((value) => (
+                          <option key={value} value={value}>
+                            {value}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-3 py-2">
+                      <label className="inline-flex items-center gap-2 text-xs">
+                        <input
+                          type="checkbox"
+                          checked={item.is_default ?? false}
+                          onChange={(e) =>
+                            handleDefaultChange(item.id, e.target.checked)
+                          }
+                        />
+                        Activa
+                      </label>
+                    </td>
 
-                  <td className="px-3 py-2">
-                    {item.id.startsWith("temp_") ? (
-                      <button onClick={() => handleCancelUnsaved(item.id)} className="rounded px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-200">
-                        Cancelar
-                      </button>
-                    ) : (
-                      <button onClick={() => handleDelete(item.id)} className="rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50">
-                        Eliminar
-                      </button>
-                    )}
+                    <td className="px-3 py-2">
+                      {item.id.startsWith("temp_") ? (
+                        <button
+                          onClick={() => handleCancelUnsaved(item.id)}
+                          className="rounded px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-200"
+                        >
+                          Cancelar
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50"
+                        >
+                          Eliminar
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+              {!paginatedItems.length && (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="px-3 py-10 text-center text-sm text-zinc-500"
+                  >
+                    {items.length === 0
+                      ? "No hay categorías aún"
+                      : "No se encontraron categorías"}
                   </td>
                 </tr>
-              );
-            })}
-            {!paginatedItems.length && (
-              <tr>
-                <td colSpan={4} className="px-3 py-10 text-center text-sm text-zinc-500">
-                  {items.length === 0 ? "No hay categorías aún" : "No se encontraron categorías"}
-                </td>
-              </tr>
-            )}
-          </DataTable>
+              )}
+            </DataTable>
+          </div>
         </div>
-      </div>}
+      )}
 
       <TablePagination page={page} maxPage={maxPage} onChange={setPage} />
     </div>
